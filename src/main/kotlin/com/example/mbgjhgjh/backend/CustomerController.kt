@@ -2,6 +2,7 @@ package com.example.mbgjhgjh.backend
 
 import com.example.mbgjhgjh.controller.UserManger
 import com.example.mbgjhgjh.controller.repository.Repository
+import com.example.mbgjhgjh.controller.repository.model.convertToCustomer
 import com.example.mbgjhgjh.db.LiveDB
 import com.example.mbgjhgjh.model.Customer
 import com.example.mbgjhgjh.model.convertToDBModel
@@ -28,23 +29,23 @@ class CustomerController(val repository: Repository) {
     }
 
     @GetMapping("/all")
-    fun getAll(): List<ArrayList<Customer>> {
+    fun getAll(): List<Customer> {
 
+        return repository.findAll().map { it.convertToCustomer() }
         // if (LiveDB.dabaseSaticObj.listOfCustomers.isNotEmpty())
-        return listOf( LiveDB.dabaseSaticObj.listOfCustomers)
+        //  return listOf( LiveDB.dabaseSaticObj.listOfCustomers)
         //catch here
-
 
 
     }
 
     @GetMapping("/hi")
-    fun sayHi(): String=
+    fun sayHi(): String =
         "hi"
 
 
     @GetMapping("/count")
-    fun counter(): Int=
+    fun counter(): Int =
         LiveDB.dabaseSaticObj.listOfCustomers.size
 
 

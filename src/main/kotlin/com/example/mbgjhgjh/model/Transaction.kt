@@ -17,12 +17,12 @@ class Transaction(
             UserManger.removeCustomer(foundedUser)
         }
         if (foundedUser != null) {
-            if (foundedUser.gutHaben -transactionValue<0){
-                status=false
-            }else{
+            if (foundedUser.gutHaben - transactionValue < 0) {
+                status = false
+            } else {
 
-                foundedUser.gutHaben -=transactionValue
-                status=true
+                foundedUser.gutHaben -= transactionValue
+                status = true
             }
         }
         if (foundedUser != null) {
@@ -32,9 +32,10 @@ class Transaction(
     }
 
 }
+
 public fun Transaction.convertToDBModel() = TransactionDb(
     customerId = this.customerId,
     transactionValue = this.transactionValue,
     status = this.status,
 
-)
+    )
