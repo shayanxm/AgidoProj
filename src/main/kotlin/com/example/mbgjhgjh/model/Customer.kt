@@ -3,7 +3,7 @@ package com.example.mbgjhgjh.model
 import com.example.mbgjhgjh.controller.repository.model.DBModel
 
 
-public class Customer(
+data class Customer(
     var userName: String = "",
     var passWord: String = "",
 ) {

@@ -8,17 +8,19 @@ import jakarta.persistence.Id
 import java.util.*
 
 @Entity
+
 class DBModel(
+@Id
     var userName: String = "",
     var passWord: String = "",
     var firstName: String = "",
     var lastName: String = "",
     var gutHaben: Double = 0.0
 ) {
-    @Id
-    @GeneratedValue
-    var id: UUID? = null
-        private set
+//    @Id
+//    @GeneratedValue
+//    var id: UUID? = null
+      //  private set
     val date: Date = Date()
 }
 

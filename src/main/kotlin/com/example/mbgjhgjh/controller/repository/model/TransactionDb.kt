@@ -7,7 +7,6 @@ import java.util.*
 
 @Entity
 class TransactionDb(
-
     val customerId: String,
     val transactionValue: Double,
     var status: Boolean = false
