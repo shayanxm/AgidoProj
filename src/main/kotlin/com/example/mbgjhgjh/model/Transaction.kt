@@ -3,14 +3,17 @@ package com.example.mbgjhgjh.model
 import com.example.mbgjhgjh.controller.UserManger
 import com.example.mbgjhgjh.controller.repository.model.DBModel
 import com.example.mbgjhgjh.controller.repository.model.TransactionDb
+import java.util.Date
 import java.util.UUID
 
 
 class Transaction(
     val customerId: String,
-    val transactionValue: Double
+    val transactionValue: Double,
+    val date: Date = Date()
 ) {
     var status: Boolean = false
+
 
 //    fun susessfullTransaction() {
 //        var foundedUser = UserManger.findCustomerById(customerId)

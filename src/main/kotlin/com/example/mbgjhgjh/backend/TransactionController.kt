@@ -3,12 +3,15 @@ package com.example.mbgjhgjh.backend
 import com.example.mbgjhgjh.controller.repository.Repository
 import com.example.mbgjhgjh.controller.repository.TransactionRepo
 import com.example.mbgjhgjh.controller.repository.model.convertToCustomer
+import com.example.mbgjhgjh.controller.repository.model.convertToTransaction
 import com.example.mbgjhgjh.db.LiveDB
 import com.example.mbgjhgjh.model.Customer
 import com.example.mbgjhgjh.model.Transaction
 import com.example.mbgjhgjh.model.convertToDBModel
 import com.example.mbgjhgjh.model.convertToTransactionModel
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Date
 
 @RestController
@@ -75,15 +78,40 @@ class TransactionController(val repository: Repository, val transactionRepo: Tra
     fun getAll(): String {
 
         // if (LiveDB.dabaseSaticObj.listOfCustomers.isNotEmpty())
-        return repository.findAll().map { it.convertToCustomer() }
+        // return repository.findAll().map { it.convertToCustomer() }
 
-        var date = Date()
-        transactionRepo.findAll().map { it. }
-        if (transactionRepo.)
-        return "heute hatten wir ${transactionRepo.findById()} Transaktionen und ${}gesamt betrag"
-        return listOf(LiveDB.dabaseSaticObj.listOfTransaction)
+        var res = transactionRepo.findAll().map { it.convertToTransaction() }
+
+        res.find { aresameDate(it.date) }
+
+        var gesamtBetrag = 0.0
+        var transaktionAnzahl = 0
+        res.forEach { element ->
+            gesamtBetrag += element.transactionValue
+            transaktionAnzahl++
+        }
+
+
+
+        return "heute hatten wir ${transaktionAnzahl} Transaktionen und ${gesamtBetrag}gesamt betrag"
+        //     return listOf(LiveDB.dabaseSaticObj.listOfTransaction)
         //catch here
 
+    }
+
+    fun aresameDate(givenDate: Date): Boolean {
+        if (givenDate.toLocalDate() == Date().toLocalDate()) {
+            println("The two dates are the same.")
+            return true
+        } else {
+            println("The two dates are different.")
+            return false
+        }
+
+    }
+
+    fun Date.toLocalDate(): LocalDate {
+        return this.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
     }
 
 
