@@ -7,17 +7,16 @@ import java.util.Date
 import java.util.UUID
 
 
-class Transaction(
+data class Transaction(
     val customerId: String,
     val transactionValue: Double,
     val date: Date = Date()
 ) {
     var status: Boolean = false
 
-
 }
 
-public fun Transaction.convertToTransactionModel() = TransactionDb(
+ fun Transaction.convertToTransactionModel() = TransactionDb(
     customerId = this.customerId,
     transactionValue = this.transactionValue,
     status = this.status,

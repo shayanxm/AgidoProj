@@ -4,16 +4,31 @@ import com.example.mbgjhgjh.controller.repository.model.DBModel
 
 
 data class Customer(
-    var userName: String = "",
-    var passWord: String = "",
+    var userName: String,
+    var passWord: String,
 ) {
     var firstName: String = ""
     var lastName: String = ""
-    public var gutHaben: Double = 0.0
+    var gutHaben: Double = 0.0
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Customer
+
+        if (userName != other.userName) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return userName.hashCode()
+    }
 
 
 }
+
 public fun Customer.convertToDBModel() = DBModel(
     userName = this.userName,
     gutHaben = this.gutHaben,
