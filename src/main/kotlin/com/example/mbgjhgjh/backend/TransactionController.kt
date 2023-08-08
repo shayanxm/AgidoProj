@@ -4,7 +4,6 @@ import com.example.mbgjhgjh.controller.repository.Repository
 import com.example.mbgjhgjh.controller.repository.TransactionRepo
 import com.example.mbgjhgjh.controller.repository.model.convertToCustomer
 import com.example.mbgjhgjh.controller.repository.model.convertToTransaction
-import com.example.mbgjhgjh.db.LiveDB
 import com.example.mbgjhgjh.model.Customer
 import com.example.mbgjhgjh.model.Transaction
 import com.example.mbgjhgjh.model.convertToDBModel

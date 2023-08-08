@@ -1,6 +1,5 @@
 package com.example.mbgjhgjh.controller
 
-import com.example.mbgjhgjh.db.LiveDB
 import com.example.mbgjhgjh.model.Customer
 
 
@@ -11,7 +10,7 @@ class UserManger() {
         public fun createCustomer(inputCustomer: Customer) {
             //  listOfCustomers.add(inputCustomer)
 
-            LiveDB.dabaseSaticObj.listOfCustomers.add(inputCustomer)
+          //  LiveDB.dabaseSaticObj.listOfCustomers.add(inputCustomer)
         }
 
         public fun updateUser(inputCustomer: Customer) {
@@ -21,14 +20,14 @@ class UserManger() {
         }
 
         public fun removeCustomer(inputCustomer: Customer) {
-            LiveDB.dabaseSaticObj.listOfCustomers.remove(inputCustomer)
+         //   LiveDB.dabaseSaticObj.listOfCustomers.remove(inputCustomer)
         }
 
-        public fun findCustomerById(cusomterId: String): Customer? {
-            val found = LiveDB.dabaseSaticObj.listOfCustomers.firstOrNull { it.userName == cusomterId }
-            return found
-
-        }
+//        public fun findCustomerById(cusomterId: String): Customer? {
+//          //  val found = LiveDB.dabaseSaticObj.listOfCustomers.firstOrNull { it.userName == cusomterId }
+//          //  return found
+//
+//        }
 
     }
 }

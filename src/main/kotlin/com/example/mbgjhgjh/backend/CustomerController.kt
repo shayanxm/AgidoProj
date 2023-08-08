@@ -3,7 +3,6 @@ package com.example.mbgjhgjh.backend
 import com.example.mbgjhgjh.controller.UserManger
 import com.example.mbgjhgjh.controller.repository.Repository
 import com.example.mbgjhgjh.controller.repository.model.convertToCustomer
-import com.example.mbgjhgjh.db.LiveDB
 import com.example.mbgjhgjh.model.Customer
 import com.example.mbgjhgjh.model.convertToDBModel
 import org.springframework.web.bind.annotation.*
