@@ -15,7 +15,10 @@ import org.springframework.web.bind.annotation.*
 class CustomerController(val repository: Repository) {
 
     @PostMapping("/new")
-    fun createNewUser(@RequestBody request: Customer) {
+    fun createNewUser(@RequestBody request: Customer): String {
+
+        if (!isUniqueUserName(request.userName)) return "username \"${request.userName}\"  already exists choose something unique"
+        if (request.passWord.length <= 6) return "entered password is too short. pls give at least 6 characters"
 
         var currentCustomer = Customer(request.userName, request.passWord)
         currentCustomer.gutHaben = request.gutHaben
@@ -23,30 +26,60 @@ class CustomerController(val repository: Repository) {
         currentCustomer.lastName = request.lastName
 
 
-        UserManger.createCustomer(inputCustomer = currentCustomer)
         repository.save(request.convertToDBModel())
-        println(request.userName)
+
+        return "new user sucessfully created"
+
+    }
+
+    @PostMapping("/edit")
+    fun editUser(@RequestBody request: Customer): String {
+        if (alreadyExistedUserPass(userName = request.userName, password = request.passWord))
+            return "entered user and passwrod do not match try again"
+
+
+        var currentCustomer = Customer(request.userName, request.passWord)
+        currentCustomer.gutHaben = request.gutHaben
+        currentCustomer.firstName = request.firstName
+        currentCustomer.lastName = request.lastName
+
+
+        repository.save(request.convertToDBModel())
+
+        return " user \"${request.userName}\" sucessfully edited"
+
     }
 
     @GetMapping("/all")
     fun getAll(): List<Customer> {
 
         return repository.findAll().map { it.convertToCustomer() }
-        // if (LiveDB.dabaseSaticObj.listOfCustomers.isNotEmpty())
-        //  return listOf( LiveDB.dabaseSaticObj.listOfCustomers)
-        //catch here
-
 
     }
 
-    @GetMapping("/hi")
-    fun sayHi(): String =
-        "hi"
-
 
     @GetMapping("/count")
-    fun counter(): Int =
-        LiveDB.dabaseSaticObj.listOfCustomers.size
+    fun counter(): String =
+        "we have ${repository.count().toInt()} users"
 
+    fun isUniqueUserName(userName: String): Boolean {
+        val allUsers = repository.findAll().map { it.convertToCustomer() }
+        var foundedUser = allUsers.find { userName == it.userName }
+        if (foundedUser != null) {
+            return false
+        }
+        return true
+    }
 
+    fun alreadyExistedUserPass(userName: String, password: String): Boolean {
+        val allUsers = repository.findAll().map { it.convertToCustomer() }
+        var foundedUser = allUsers.find { password == it.passWord && userName == it.userName }
+        if (foundedUser != null) {
+            return false
+        }
+        return true
+    }
 }
+
+
+
