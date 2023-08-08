@@ -1,4 +1,4 @@
-package com.example.mbgjhgjh.backend
+package com.example.mbgjhgjh.controller
 
 import com.example.mbgjhgjh.controller.repository.Repository
 import com.example.mbgjhgjh.controller.repository.TransactionRepo
@@ -49,22 +49,31 @@ class TransactionController(val repository: Repository, val transactionRepo: Tra
         res.find { aresameDate(it.date) }
         res.forEach {
             if (aresameDate(it.date))
-                finalres.add(it)
+                finalres.add(it.convertToTransactionModel())
         }
 
         var gesamtBetrag = 0.0
         var transaktionAnzahl = 0
+        var failedTransactions = 0
+        var payIn = 0.0
+        var payOut = 0.0
         finalres.forEach { element ->
-            gesamtBetrag += element.transactionValue
-            transaktionAnzahl++
+            if (element.status) {
+                if (element.transactionValue > 0) payIn += element.transactionValue
+                if (element.transactionValue < 0) payOut -= element.transactionValue
+
+                gesamtBetrag += element.transactionValue
+                transaktionAnzahl++
+            } else failedTransactions++
         }
 
 
+        return "today we had ${transaktionAnzahl}sucessfull Transactions \n" +
+                "we had ${failedTransactions} failed transactions\n" +
+                "total payin :  ${payIn}\n" +
+                "total payout ${payOut}\n" +
+                "and total amount${gesamtBetrag} amount "
 
-
-        return "heute hatten wir ${transaktionAnzahl} Transaktionen und ${gesamtBetrag}gesamt betrag"
-        //     return listOf(LiveDB.dabaseSaticObj.listOfTransaction)
-        //catch here
 
     }
 
@@ -72,16 +81,14 @@ class TransactionController(val repository: Repository, val transactionRepo: Tra
     fun getDetail(): ArrayList<TransactionDb> {
 
         var finalres = ArrayList<TransactionDb>()
-        var res = transactionRepo.findAll().map { it.convertToTransaction() }
+        var res = transactionRepo.findAll().map { it }
+
         res.forEach {
             if (aresameDate(it.date))
                 finalres.add(it)
         }
 
-
-
         return finalres
-
 
     }
 
@@ -124,11 +131,12 @@ class TransactionController(val repository: Repository, val transactionRepo: Tra
                 failed = true
             }
         }
-        if (!failed) {
-            if (!istEinzahlen) request.transactionValue=- request.transactionValue
-            transactionRepo.save(request.convertToTransactionModel())
 
-        }
+
+        if (!istEinzahlen) request.transactionValue = -request.transactionValue
+        if (failed) request.status = false
+        transactionRepo.save(request.convertToTransactionModel())
+
         if (repository.findById(request.customerId).isEmpty) {
             finalRes =
                 "Transaction failed! no user with username:${request.customerId} found!"

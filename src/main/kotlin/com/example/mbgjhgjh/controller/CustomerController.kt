@@ -1,6 +1,5 @@
-package com.example.mbgjhgjh.backend
+package com.example.mbgjhgjh.controller
 
-import com.example.mbgjhgjh.controller.UserManger
 import com.example.mbgjhgjh.controller.repository.Repository
 import com.example.mbgjhgjh.controller.repository.model.convertToCustomer
 import com.example.mbgjhgjh.model.Customer

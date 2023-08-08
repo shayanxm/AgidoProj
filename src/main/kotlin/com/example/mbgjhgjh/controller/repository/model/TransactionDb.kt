@@ -20,10 +20,16 @@ class TransactionDb(
         private set
 
 }
-public fun TransactionDb.convertToTransaction() = TransactionDb(
-    customerId = this.customerId,
-    transactionValue = this.transactionValue,
-    status = this.status,
-    date=this.date
 
+public fun TransactionDb.convertToTransaction(): Transaction {
+    var transaction = Transaction(
+        customerId = this.customerId,
+        transactionValue = this.transactionValue,
+        date = this.date
     )
+    transaction.status = this.status
+
+    transaction.id = this.id
+
+    return transaction
+}

@@ -1,8 +1,10 @@
-package com.example.mbgjhgjh.backend
+package com.example.mbgjhgjh.controller
 
 import com.example.mbgjhgjh.controller.repository.TransactionRepo
 import com.example.mbgjhgjh.controller.repository.model.TransactionDb
 import com.example.mbgjhgjh.controller.repository.model.convertToTransaction
+import com.example.mbgjhgjh.model.Utiles.Companion.aresameDate
+import com.example.mbgjhgjh.model.convertToTransactionModel
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,7 +33,7 @@ return buildNumber
         var res = transactionRepo.findAll().map { it.convertToTransaction() }
         res.forEach {
             if (aresameDate(it.date))
-                finalres.add(it)
+                finalres.add(it.convertToTransactionModel())
         }
 
 
@@ -45,17 +47,3 @@ return buildNumber
 
 }
 
-    fun aresameDate(givenDate: Date): Boolean {
-        if (givenDate.toLocalDate() == Date().toLocalDate()) {
-            println("The two dates are the same.")
-            return true
-        } else {
-            println("The two dates are different.")
-            return false
-        }
-
-    }
-
-    fun Date.toLocalDate(): LocalDate {
-        return this.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-    }
