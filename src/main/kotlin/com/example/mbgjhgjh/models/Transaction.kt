@@ -1,6 +1,6 @@
-package com.example.mbgjhgjh.model
+package com.example.mbgjhgjh.models
 
-import com.example.mbgjhgjh.controller.repository.model.TransactionDb
+import com.example.mbgjhgjh.controller.repository.dbmodel.TransactionDb
 import java.util.*
 
 

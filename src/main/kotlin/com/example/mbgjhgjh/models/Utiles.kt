@@ -1,4 +1,4 @@
-package com.example.mbgjhgjh.model
+package com.example.mbgjhgjh.models
 
 import java.time.LocalDate
 import java.time.ZoneId
@@ -16,4 +16,8 @@ class Utiles {
         }
 
     }
+
+    data class MessageWithStatus(val sucessfull: Boolean, val message: String)
+    data class PlainMessage(val message: String)
+
 }

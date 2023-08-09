@@ -1,6 +1,6 @@
-package com.example.mbgjhgjh.controller.repository.model
+package com.example.mbgjhgjh.controller.repository.dbmodel
 
-import com.example.mbgjhgjh.model.Transaction
+import com.example.mbgjhgjh.models.Transaction
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id

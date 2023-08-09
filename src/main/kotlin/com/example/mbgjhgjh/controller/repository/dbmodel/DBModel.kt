@@ -1,9 +1,7 @@
-package com.example.mbgjhgjh.controller.repository.model
+package com.example.mbgjhgjh.controller.repository.dbmodel
 
-import com.example.mbgjhgjh.model.Customer
-import com.example.mbgjhgjh.model.convertToDBModel
+import com.example.mbgjhgjh.models.Customer
 import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id
 import java.util.*
 
@@ -12,10 +10,12 @@ import java.util.*
 class DBModel(
     @Id
     var userName: String,
+
     var passWord: String,
-    var firstName: String = "",
-    var lastName: String = "",
-    var gutHaben: Double = 0.0
+    var firstName: String ,
+    var lastName: String ,
+
+    var gutHaben: Double
 ) {
     //    @Id
 //    @GeneratedValue

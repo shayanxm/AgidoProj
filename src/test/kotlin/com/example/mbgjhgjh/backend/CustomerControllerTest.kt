@@ -1,10 +1,7 @@
 package com.example.mbgjhgjh.backend
 
-import com.example.mbgjhgjh.controller.repository.Repository
-import com.example.mbgjhgjh.model.Customer
+import com.example.mbgjhgjh.models.Customer
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 internal class CustomerControllerTest{

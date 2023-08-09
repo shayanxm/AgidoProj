@@ -1,9 +1,10 @@
 package com.example.mbgjhgjh.controller
 
 import com.example.mbgjhgjh.controller.repository.Repository
-import com.example.mbgjhgjh.controller.repository.model.convertToCustomer
-import com.example.mbgjhgjh.model.Customer
-import com.example.mbgjhgjh.model.convertToDBModel
+import com.example.mbgjhgjh.controller.repository.dbmodel.convertToCustomer
+import com.example.mbgjhgjh.models.Customer
+import com.example.mbgjhgjh.models.Utiles
+import com.example.mbgjhgjh.models.convertToDBModel
 import org.springframework.web.bind.annotation.*
 
 
@@ -13,10 +14,15 @@ import org.springframework.web.bind.annotation.*
 class CustomerController(val repository: Repository) {
 
     @PostMapping("/new")
-    fun createNewUser(@RequestBody request: Customer): String {
+    fun createNewUser(@RequestBody request: Customer): Utiles.MessageWithStatus {
 
-        if (!isUniqueUserName(request.userName)) return "username \"${request.userName}\"  already exists choose something unique"
-        if (request.passWord.length <= 6) return "entered password is too short. pls give at least 6 characters"
+        if (!isUniqueUserName(request.userName))
+            return Utiles.MessageWithStatus(
+                false,
+                "username \"${request.userName}\"  already exists choose something unique"
+            )
+        if (request.passWord.length <= 6)
+            return Utiles.MessageWithStatus(false, "entered password is too short. pls give at least 6 characters")
 
         var currentCustomer = Customer(request.userName, request.passWord)
         currentCustomer.gutHaben = request.gutHaben
@@ -26,27 +32,25 @@ class CustomerController(val repository: Repository) {
 
         repository.save(request.convertToDBModel())
 
-        return "new user sucessfully created"
+        return Utiles.MessageWithStatus(true, "new user sucessfully created")
 
     }
 
     @PostMapping("/edit")
-    fun editUser(@RequestBody request: Customer): String {
+    fun editUser(@RequestBody request: Customer): Utiles.MessageWithStatus {
         if (alreadyExistedUserPass(userName = request.userName, password = request.passWord))
-            return "entered user and passwrod do not match try again"
-
+            return Utiles.MessageWithStatus(false, "entered user and passwrod do not match try again")
 
         var currentCustomer = Customer(request.userName, request.passWord)
         currentCustomer.gutHaben = request.gutHaben
         currentCustomer.firstName = request.firstName
         currentCustomer.lastName = request.lastName
 
-
         repository.save(request.convertToDBModel())
 
-        return " user \"${request.userName}\" sucessfully edited"
-
+        return Utiles.MessageWithStatus(true, " user \"${request.userName}\" sucessfully edited")
     }
+
 
     @GetMapping("/all")
     fun getAll(): List<Customer> {
@@ -57,8 +61,10 @@ class CustomerController(val repository: Repository) {
 
 
     @GetMapping("/count")
-    fun counter(): String =
-        "we have ${repository.count().toInt()} users"
+    fun counter(): UserCount =
+        UserCount(repository.count().toInt())
+
+    data class UserCount(val userCount: Int)
 
     fun isUniqueUserName(userName: String): Boolean {
         val allUsers = repository.findAll().map { it.convertToCustomer() }

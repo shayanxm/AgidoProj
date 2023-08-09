@@ -2,13 +2,13 @@ package com.example.mbgjhgjh.controller
 
 import com.example.mbgjhgjh.controller.repository.Repository
 import com.example.mbgjhgjh.controller.repository.TransactionRepo
-import com.example.mbgjhgjh.controller.repository.model.TransactionDb
-import com.example.mbgjhgjh.controller.repository.model.convertToCustomer
-import com.example.mbgjhgjh.controller.repository.model.convertToTransaction
-import com.example.mbgjhgjh.model.Customer
-import com.example.mbgjhgjh.model.Transaction
-import com.example.mbgjhgjh.model.convertToDBModel
-import com.example.mbgjhgjh.model.convertToTransactionModel
+import com.example.mbgjhgjh.controller.repository.dbmodel.TransactionDb
+import com.example.mbgjhgjh.controller.repository.dbmodel.convertToCustomer
+import com.example.mbgjhgjh.controller.repository.dbmodel.convertToTransaction
+import com.example.mbgjhgjh.models.Customer
+import com.example.mbgjhgjh.models.Transaction
+import com.example.mbgjhgjh.models.convertToDBModel
+import com.example.mbgjhgjh.models.convertToTransactionModel
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.time.ZoneId
@@ -19,7 +19,7 @@ import java.util.Date
 
 class TransactionController(val repository: Repository, val transactionRepo: TransactionRepo) {
     @PostMapping("auszahlen")
-    fun reduceAmount(@RequestBody request: Transaction): String {
+    fun reduceAmount(@RequestBody request: Transaction): TransactionerMessage {
 
 
         return transactioner(request, false)
@@ -27,7 +27,7 @@ class TransactionController(val repository: Repository, val transactionRepo: Tra
     }
 
     @PostMapping("einzahlen")
-    fun increaseAmount(@RequestBody request: Transaction): String {
+    fun increaseAmount(@RequestBody request: Transaction): TransactionerMessage {
 
         var transaction = Transaction(request.customerId, -request.transactionValue)
 
@@ -41,7 +41,7 @@ class TransactionController(val repository: Repository, val transactionRepo: Tra
 
 
     @GetMapping("/all")
-    fun getAll(): String {
+    fun getAll(): TransactionsMessage {
 
         var finalres = ArrayList<TransactionDb>()
         var res = transactionRepo.findAll().map { it.convertToTransaction() }
@@ -67,15 +67,20 @@ class TransactionController(val repository: Repository, val transactionRepo: Tra
             } else failedTransactions++
         }
 
-
-        return "today we had ${transaktionAnzahl}sucessfull Transactions \n" +
-                "we had ${failedTransactions} failed transactions\n" +
-                "total payin :  ${payIn}\n" +
-                "total payout ${payOut}\n" +
-                "and total amount${gesamtBetrag} amount "
-
+        return TransactionsMessage(transaktionAnzahl, failedTransactions, payIn, payOut, gesamtBetrag)
+//
+//        return "today we had ${transaktionAnzahl}sucessfull Transactions \n" +
+//                "we had ${failedTransactions} failed transactions\n" +
+//                "total payin :  ${payIn}\n" +
+//                "total payout ${payOut}\n" +
+//                "and total amount${gesamtBetrag} amount "
 
     }
+
+    data class TransactionsMessage(
+        val TodaySucessfullTransactions: Int, val failedTransactinos: Int, val totalPayIn: Double,
+        val totalPayOut: Double, val totalSucessTransactions: Double
+    )
 
     @GetMapping("/detail")
     fun getDetail(): ArrayList<TransactionDb> {
@@ -109,11 +114,13 @@ class TransactionController(val repository: Repository, val transactionRepo: Tra
     }
 
 
-    fun transactioner(request: Transaction, istEinzahlen: Boolean): String {
+    fun transactioner(request: Transaction, istEinzahlen: Boolean): TransactionerMessage {
         var finalRes = ""
         var failed = false
+        var newBalance = 0.0
         repository.findById(request.customerId).map { customer ->
             val updatedCustoemr: Customer = customer.convertToCustomer()
+            newBalance = updatedCustoemr.gutHaben
 
             if (istEinzahlen)
                 updatedCustoemr.gutHaben += request.transactionValue
@@ -121,7 +128,7 @@ class TransactionController(val repository: Repository, val transactionRepo: Tra
                 updatedCustoemr.gutHaben -= request.transactionValue
 
             if (updatedCustoemr.gutHaben > 0) {
-
+                newBalance = updatedCustoemr.gutHaben
                 finalRes = "Transaction is sucessfuly done! new balance for this user=  ${updatedCustoemr.gutHaben} "
                 repository.delete(customer)
                 repository.save(updatedCustoemr.convertToDBModel())
@@ -142,9 +149,11 @@ class TransactionController(val repository: Repository, val transactionRepo: Tra
                 "Transaction failed! no user with username:${request.customerId} found!"
             failed = true
         }
-        return finalRes
+        return TransactionerMessage(!failed, finalRes,newBalance)
 
     }
+
+    data class TransactionerMessage(val sucessfull: Boolean, val message: String, val newBalance: Double)
 
 }
 
