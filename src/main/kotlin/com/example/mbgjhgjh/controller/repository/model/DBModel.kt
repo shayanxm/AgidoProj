@@ -10,21 +10,21 @@ import java.util.*
 @Entity
 
 class DBModel(
-@Id
-    var userName: String = "",
-    var passWord: String = "",
+    @Id
+    var userName: String,
+    var passWord: String,
     var firstName: String = "",
     var lastName: String = "",
     var gutHaben: Double = 0.0
 ) {
-//    @Id
+    //    @Id
 //    @GeneratedValue
 //    var id: UUID? = null
-      //  private set
+    //  private set
     val date: Date = Date()
 }
 
-public fun DBModel.convertToCustomer(): Customer {
+fun DBModel.convertToCustomer(): Customer {
     var customer = Customer(this.userName, this.passWord)
     customer.gutHaben = this.gutHaben
     customer.firstName = this.firstName

@@ -9,7 +9,7 @@ data class Transaction(
     var transactionValue: Double,
     val date: Date = Date()
 ) {
-    var status: Boolean = true
+    var isValidTransaction: Boolean = true
     var id: UUID? = null
 
 }
@@ -18,9 +18,9 @@ fun Transaction.convertToTransactionModel(): TransactionDb {
     var transactionDb = TransactionDb(
         customerId = this.customerId,
         transactionValue = this.transactionValue,
-        status = this.status
+        isValidTransaction = this.isValidTransaction
     )
-    transactionDb.status = this.status
+    transactionDb.isValidTransaction = this.isValidTransaction
    // transactionDb.id = this.id
 
     return transactionDb

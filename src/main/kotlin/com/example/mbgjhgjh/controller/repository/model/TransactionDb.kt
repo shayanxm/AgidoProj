@@ -10,7 +10,7 @@ import java.util.*
 class TransactionDb(
     val customerId: String,
     val transactionValue: Double,
-    var status: Boolean = false,
+    var isValidTransaction: Boolean = false,
     val date: Date = Date()
 ) {
 
@@ -21,13 +21,13 @@ class TransactionDb(
 
 }
 
-public fun TransactionDb.convertToTransaction(): Transaction {
+ fun TransactionDb.convertToTransaction(): Transaction {
     var transaction = Transaction(
         customerId = this.customerId,
         transactionValue = this.transactionValue,
         date = this.date
     )
-    transaction.status = this.status
+    transaction.isValidTransaction = this.isValidTransaction
 
     transaction.id = this.id
 

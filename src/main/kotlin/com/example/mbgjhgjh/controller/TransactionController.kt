@@ -58,7 +58,7 @@ class TransactionController(val repository: Repository, val transactionRepo: Tra
         var payIn = 0.0
         var payOut = 0.0
         finalres.forEach { element ->
-            if (element.status) {
+            if (element.isValidTransaction) {
                 if (element.transactionValue > 0) payIn += element.transactionValue
                 if (element.transactionValue < 0) payOut -= element.transactionValue
 
@@ -134,7 +134,7 @@ class TransactionController(val repository: Repository, val transactionRepo: Tra
 
 
         if (!istEinzahlen) request.transactionValue = -request.transactionValue
-        if (failed) request.status = false
+        if (failed) request.isValidTransaction = false
         transactionRepo.save(request.convertToTransactionModel())
 
         if (repository.findById(request.customerId).isEmpty) {
