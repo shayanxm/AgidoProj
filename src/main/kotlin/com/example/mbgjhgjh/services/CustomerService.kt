@@ -47,28 +47,6 @@ class CustomerService {
 
 
 
-//    fun createNewUser(customer: Customer): ResponseEntity<Customer>{
-//     //   if (!isUniqueUserName(customer.userName))
-////            return Messager.MessageWithStatus(
-////                false,
-////                "userName \"${customer.userName}\"  already exists choose something unique"
-////            )
-//      //  if (customer.password.length <= 6)
-//         //   return Messager.MessageWithStatus(false, "entered password is too short. pls give at least 6 characters")
-//
-//        var currentCustomer = Customer(customer.userName, customer.password)
-//        currentCustomer.gutHaben = customer.gutHaben
-//        currentCustomer.firstName = customer.firstName
-//        currentCustomer.lastName = customer.lastName
-//
-//
-//        userRepo.save(customer.convertToDBModel())
-//
-//        return ResponseEntity.ok(currentCustomer)
-//
-//    }
-
-
     fun counter(): UserCount = UserCount(userRepo.count().toInt())
     data class UserCount(val userCount: Int)
 

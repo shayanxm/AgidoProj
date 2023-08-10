@@ -36,13 +36,9 @@ class Manager(
                 finalres.add(it.convertToTransactionModel())
         }
 
-
-
         return finalres
 
-
     }
-
 
 }
 

@@ -26,6 +26,21 @@ class CustomerController(val repository: UserRepo) {
     @PostMapping("/new")
     fun createNewUser(@RequestBody request: Customer): Messager.MessageWithStatus = service.createNewUser(request)
 
+
+
+
+    @PostMapping("/edit")
+    fun editUser(@RequestBody request: Customer): Messager.MessageWithStatus = service.editUser(request)
+
+
+    @GetMapping("/all")
+    fun getAll(): List<Customer> = service.getAllCustomers()
+
+
+    @GetMapping("/count")
+    fun counter(): CustomerService.UserCount = service.counter()
+
+
     @PostMapping("/login")
     fun login(@RequestBody request: LoginDTO,respone:HttpServletResponse): ResponseEntity<Any> {
         val user = service.findByUserName(request.userName)
@@ -37,17 +52,6 @@ class CustomerController(val repository: UserRepo) {
                 .body(Messager.PlainMessage("invalid password"))
         }
 
-//        var secret = "myscrestcode";
-//
-//        val issuer=user.userName.toString()
-//        val jwt=Jwts.builder()
-//            .setIssuer(issuer)
-//            .setExpiration(Date(System.currentTimeMillis()+60*24*10000)) //1day
-//            .signWith(SignatureAlgorithm.HS384,secret).compact()
-//
-
-
-// Replace "your-secret-key" with your actual secret key
         val secretKey = "my_template_secret"
 
         val issuer = user.userName
@@ -61,27 +65,9 @@ class CustomerController(val repository: UserRepo) {
         cookie.isHttpOnly=true
         respone.addCookie(cookie)
 
-
-
         return ResponseEntity.ok(Messager.PlainMessage("Sucesss"))
 
     }
-
-
-//    @PostMapping("/new")
-//    fun createNewUser(@RequestBody request: Customer): ResponseEntity<Customer> = service.createNewUser(request)
-
-
-    @PostMapping("/edit")
-    fun editUser(@RequestBody request: Customer): Messager.MessageWithStatus = service.editUser(request)
-
-
-    @GetMapping("/all")
-    fun getAll(): List<Customer> = service.getAllCustomers()
-
-
-    @GetMapping("/count")
-    fun counter(): CustomerService.UserCount = service.counter()
 
 
 }
