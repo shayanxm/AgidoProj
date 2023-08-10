@@ -3,8 +3,9 @@ package com.example.mbgjhgjh.controller
 import com.example.mbgjhgjh.controller.repository.TransactionRepo
 import com.example.mbgjhgjh.controller.repository.dbmodel.TransactionDb
 import com.example.mbgjhgjh.controller.repository.dbmodel.convertToTransaction
+import com.example.mbgjhgjh.models.Messager
 import com.example.mbgjhgjh.models.Utiles
-import com.example.mbgjhgjh.models.Utiles.Companion.aresameDate
+import com.example.mbgjhgjh.models.Utiles.aresameDate
 import com.example.mbgjhgjh.models.convertToTransactionModel
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,8 +22,8 @@ class Manager(
 ) {
 
     @GetMapping("/version")
-    fun getAlXl(): Utiles.PlainMessage {
-        return Utiles.PlainMessage(buildNumber)
+    fun getAlXl(): Messager.PlainMessage {
+        return Messager.PlainMessage(buildNumber)
     }
 
     @GetMapping("/detail")
