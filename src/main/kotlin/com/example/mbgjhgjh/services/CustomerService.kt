@@ -1,16 +1,12 @@
 package com.example.mbgjhgjh.services
 
-import com.example.mbgjhgjh.controller.CustomerController
 import com.example.mbgjhgjh.controller.repository.UserRepo
 import com.example.mbgjhgjh.controller.repository.dbmodel.convertToCustomer
 import com.example.mbgjhgjh.models.Customer
 import com.example.mbgjhgjh.models.Messager
-import com.example.mbgjhgjh.models.Utiles
 import com.example.mbgjhgjh.models.convertToDBModel
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.RequestBody
 
 @Service
 class CustomerService {
@@ -27,13 +23,13 @@ class CustomerService {
         if (!isUniqueUserName(customer.userName))
             return Messager.MessageWithStatus(
                 false,
-                "username \"${customer.userName}\"  already exists choose something unique"
+                "userName \"${customer.userName}\"  already exists choose something unique"
             )
-        if (customer.passWord.length <= 6)
+        if (customer.password.length <= 6)
             return Messager.MessageWithStatus(false, "entered password is too short. pls give at least 6 characters")
 
         var currentCustomer = Customer(customer.userName)
-        currentCustomer.passWord=customer.passWord
+        currentCustomer.password=customer.password
         currentCustomer.gutHaben = customer.gutHaben
         currentCustomer.firstName = customer.firstName
         currentCustomer.lastName = customer.lastName
@@ -45,16 +41,22 @@ class CustomerService {
 
     }
 
+    fun findByUserName(username:String):Customer?{
+        return userRepo.findByUserName(username)?.convertToCustomer()
+    }
+
+
+
 //    fun createNewUser(customer: Customer): ResponseEntity<Customer>{
 //     //   if (!isUniqueUserName(customer.userName))
 ////            return Messager.MessageWithStatus(
 ////                false,
-////                "username \"${customer.userName}\"  already exists choose something unique"
+////                "userName \"${customer.userName}\"  already exists choose something unique"
 ////            )
-//      //  if (customer.passWord.length <= 6)
+//      //  if (customer.password.length <= 6)
 //         //   return Messager.MessageWithStatus(false, "entered password is too short. pls give at least 6 characters")
 //
-//        var currentCustomer = Customer(customer.userName, customer.passWord)
+//        var currentCustomer = Customer(customer.userName, customer.password)
 //        currentCustomer.gutHaben = customer.gutHaben
 //        currentCustomer.firstName = customer.firstName
 //        currentCustomer.lastName = customer.lastName
@@ -71,11 +73,11 @@ class CustomerService {
     data class UserCount(val userCount: Int)
 
     fun editUser(request: Customer): Messager.MessageWithStatus {
-        if (alreadyExistedUserPass(userName = request.userName, password = request.passWord))
+        if (alreadyExistedUserPass(userName = request.userName, password = request.password))
             return Messager.MessageWithStatus(false, "entered user and passwrod do not match try again")
 
         var currentCustomer = Customer(request.userName)
-        currentCustomer.passWord = request.passWord
+        currentCustomer.password = request.password
 
         currentCustomer.gutHaben = request.gutHaben
         currentCustomer.firstName = request.firstName
@@ -98,7 +100,7 @@ class CustomerService {
 
     fun alreadyExistedUserPass(userName: String, password: String): Boolean {
         val allUsers = userRepo.findAll().map { it.convertToCustomer() }
-        var foundedUser = allUsers.find { password == it.passWord && userName == it.userName }
+        var foundedUser = allUsers.find { password == it.password && userName == it.userName }
         if (foundedUser != null) {
             return false
         }

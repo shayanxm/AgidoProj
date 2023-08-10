@@ -38,11 +38,13 @@ class DBModel(
 //    var id: UUID? = null
     //  private set
     val date: Date = Date()
+
 }
+
 
 fun DBModel.convertToCustomer(): Customer {
     var customer = Customer(this.userName)
-    customer.passWord = this.password
+    customer.password = this.password
     customer.gutHaben = this.gutHaben
     customer.firstName = this.firstName
     customer.lastName = this.lastName

@@ -41,7 +41,7 @@ class TransactionService {
     }
 
     @GetMapping("user_transactions")
-    fun getUserTransactions(userName: String): java.util.ArrayList<TransactionDb> {
+    fun getUserTransactions(userName: String): java.util.ArrayList<TransactionDb>? {
      return   transactionRepo.findAllByCustomerId(userName)
 
     }
@@ -132,7 +132,7 @@ class TransactionService {
 
         if (repository.findById(request.customerId).isEmpty) {
             finalRes =
-                "Transaction failed! no user with username:${request.customerId} found!"
+                "Transaction failed! no user with userName:${request.customerId} found!"
             failed = true
         }
         return TransactionerMessage(!failed, finalRes, newBalance)

@@ -30,7 +30,7 @@ val list = listOf(Customer("",""))
         //then
 
         //  assertThat(user).isNotEmpty
-        assertThat(list).allMatch {it.passWord.length>=6}
+        assertThat(list).allMatch {it.password.length>=6}
 
     }
 

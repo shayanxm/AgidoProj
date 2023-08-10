@@ -36,7 +36,7 @@ class TransactionController(val repository: UserRepo, val transactionRepo: Trans
         service.getAll()
 
     @GetMapping("user/{userName}")
-    fun getUserTransactions(@PathVariable userName: String): java.util.ArrayList<TransactionDb> =
+    fun getUserTransactions(@PathVariable userName: String): java.util.ArrayList<TransactionDb>? =
         service.getUserTransactions(userName)
 
 
