@@ -104,12 +104,9 @@ class TransactionService {
         res.forEach {
             if (aresameDate(it.date))
                 finalres.add(it)
-        }
-
+        }g
         return finalres
-
     }
-
 
     fun transactioner(request: Transaction, istEinzahlen: Boolean): TransactionerMessage {
         var finalRes = ""
