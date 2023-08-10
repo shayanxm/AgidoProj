@@ -1,6 +1,5 @@
 package com.example.mbgjhgjh.services
 
-import com.example.mbgjhgjh.controller.TransactionController
 import com.example.mbgjhgjh.controller.repository.TransactionRepo
 import com.example.mbgjhgjh.controller.repository.UserRepo
 import com.example.mbgjhgjh.controller.repository.dbmodel.TransactionDb
@@ -10,9 +9,6 @@ import com.example.mbgjhgjh.models.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
@@ -39,6 +35,23 @@ class TransactionService {
         return transactioner(request, true)
 
     }
+
+
+
+    fun reduceMyAmount(request: Transaction): TransactionerMessage {
+
+
+        return transactioner(request, false)
+
+    }
+
+    fun increaseMyAmount(request: Transaction): TransactionerMessage {
+
+        return transactioner(request, true)
+
+    }
+
+
 
     @GetMapping("user_transactions")
     fun getUserTransactions(userName: String): java.util.ArrayList<TransactionDb>? {
@@ -132,7 +145,7 @@ class TransactionService {
 
         if (repository.findById(request.customerId).isEmpty) {
             finalRes =
-                "Transaction failed! no user with userName:${request.customerId} found!"
+                "Transaction failed! no user with customerId:${request.customerId} found!"
             failed = true
         }
         return TransactionerMessage(!failed, finalRes, newBalance)

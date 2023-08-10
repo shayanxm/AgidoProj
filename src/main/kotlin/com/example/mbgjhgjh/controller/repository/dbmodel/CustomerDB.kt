@@ -1,6 +1,7 @@
 package com.example.mbgjhgjh.controller.repository.dbmodel
 
 import com.example.mbgjhgjh.models.Customer
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id

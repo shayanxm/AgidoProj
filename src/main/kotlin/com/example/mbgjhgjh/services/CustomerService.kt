@@ -19,11 +19,12 @@ class CustomerService {
     }
 
 
+
     fun createNewUser(customer: Customer): Messager.MessageWithStatus {
         if (!isUniqueUserName(customer.userName))
             return Messager.MessageWithStatus(
                 false,
-                "userName \"${customer.userName}\"  already exists choose something unique"
+                "customerId \"${customer.userName}\"  already exists choose something unique"
             )
         if (customer.password.length <= 6)
             return Messager.MessageWithStatus(false, "entered password is too short. pls give at least 6 characters")

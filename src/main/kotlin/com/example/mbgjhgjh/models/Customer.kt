@@ -1,6 +1,7 @@
 package com.example.mbgjhgjh.models
 
 import com.example.mbgjhgjh.controller.repository.dbmodel.DBModel
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 
 
@@ -10,11 +11,15 @@ data class Customer(
 
 
 ) {
+
     var password: String = ""
+//        @JsonIgnore
+        get() = field
     var firstName: String = ""
     var lastName: String = ""
     var gutHaben: Double = 0.0
     fun comparePassword(password: String): Boolean {
+        print("passes"+password+this.password)
         return BCryptPasswordEncoder().matches(password, this.password)
     }
 
