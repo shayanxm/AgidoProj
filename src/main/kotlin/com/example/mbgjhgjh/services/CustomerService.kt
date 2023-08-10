@@ -8,6 +8,7 @@ import com.example.mbgjhgjh.models.Messager
 import com.example.mbgjhgjh.models.Utiles
 import com.example.mbgjhgjh.models.convertToDBModel
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.RequestBody
 
@@ -31,7 +32,8 @@ class CustomerService {
         if (customer.passWord.length <= 6)
             return Messager.MessageWithStatus(false, "entered password is too short. pls give at least 6 characters")
 
-        var currentCustomer = Customer(customer.userName, customer.passWord)
+        var currentCustomer = Customer(customer.userName)
+        currentCustomer.passWord=customer.passWord
         currentCustomer.gutHaben = customer.gutHaben
         currentCustomer.firstName = customer.firstName
         currentCustomer.lastName = customer.lastName
@@ -39,9 +41,31 @@ class CustomerService {
 
         userRepo.save(customer.convertToDBModel())
 
-        return Messager.MessageWithStatus(true, "new user sucessfully created")
+        return Messager.MessageWithStatus(true, "new user '${customer.userName}' sucessfully created")
 
     }
+
+//    fun createNewUser(customer: Customer): ResponseEntity<Customer>{
+//     //   if (!isUniqueUserName(customer.userName))
+////            return Messager.MessageWithStatus(
+////                false,
+////                "username \"${customer.userName}\"  already exists choose something unique"
+////            )
+//      //  if (customer.passWord.length <= 6)
+//         //   return Messager.MessageWithStatus(false, "entered password is too short. pls give at least 6 characters")
+//
+//        var currentCustomer = Customer(customer.userName, customer.passWord)
+//        currentCustomer.gutHaben = customer.gutHaben
+//        currentCustomer.firstName = customer.firstName
+//        currentCustomer.lastName = customer.lastName
+//
+//
+//        userRepo.save(customer.convertToDBModel())
+//
+//        return ResponseEntity.ok(currentCustomer)
+//
+//    }
+
 
     fun counter(): UserCount = UserCount(userRepo.count().toInt())
     data class UserCount(val userCount: Int)
@@ -50,7 +74,9 @@ class CustomerService {
         if (alreadyExistedUserPass(userName = request.userName, password = request.passWord))
             return Messager.MessageWithStatus(false, "entered user and passwrod do not match try again")
 
-        var currentCustomer = Customer(request.userName, request.passWord)
+        var currentCustomer = Customer(request.userName)
+        currentCustomer.passWord = request.passWord
+
         currentCustomer.gutHaben = request.gutHaben
         currentCustomer.firstName = request.firstName
         currentCustomer.lastName = request.lastName

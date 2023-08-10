@@ -8,6 +8,7 @@ import com.example.mbgjhgjh.models.Utiles
 import com.example.mbgjhgjh.models.convertToDBModel
 import com.example.mbgjhgjh.services.CustomerService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.*
 
@@ -21,6 +22,10 @@ class CustomerController(val repository: UserRepo) {
 
     @PostMapping("/new")
     fun createNewUser(@RequestBody request: Customer): Messager.MessageWithStatus = service.createNewUser(request)
+
+
+//    @PostMapping("/new")
+//    fun createNewUser(@RequestBody request: Customer): ResponseEntity<Customer> = service.createNewUser(request)
 
 
     @PostMapping("/edit")

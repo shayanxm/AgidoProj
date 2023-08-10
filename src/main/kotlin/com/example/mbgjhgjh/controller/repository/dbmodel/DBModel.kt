@@ -1,22 +1,38 @@
 package com.example.mbgjhgjh.controller.repository.dbmodel
 
 import com.example.mbgjhgjh.models.Customer
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.util.*
 
 @Entity
 
 class DBModel(
+
     @Id
     var userName: String,
 
-    var passWord: String,
-    var firstName: String ,
-    var lastName: String ,
+    ) {
+    @Column
+    var firstName: String = ""
 
-    var gutHaben: Double
-) {
+    @Column
+
+    var lastName: String = ""
+
+    @Column
+    var gutHaben: Double = 0.0
+
+    @Column
+    var password = ""
+        get() = field
+        set(value) {
+            val passwordEncoder = BCryptPasswordEncoder()
+            field = passwordEncoder.encode(value)
+        }
+
     //    @Id
 //    @GeneratedValue
 //    var id: UUID? = null
@@ -25,10 +41,10 @@ class DBModel(
 }
 
 fun DBModel.convertToCustomer(): Customer {
-    var customer = Customer(this.userName, this.passWord)
+    var customer = Customer(this.userName)
+    customer.passWord = this.password
     customer.gutHaben = this.gutHaben
     customer.firstName = this.firstName
     customer.lastName = this.lastName
     return customer
 }
-
