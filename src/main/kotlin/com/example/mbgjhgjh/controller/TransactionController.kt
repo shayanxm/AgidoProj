@@ -18,35 +18,13 @@ import java.util.Date
 import javax.print.attribute.standard.JobOriginatingUserName
 
 @RestController
-@RequestMapping("transaction")
+@RequestMapping("api/transaction")
 
 class TransactionController(val repository: UserRepo, val loggedInRepo: LoggedInUserRepo) {
 
     @Autowired
     lateinit var service: TransactionService
 
-    @PostMapping("admin=851851/auszahlen")
-    fun reduceAmount(@RequestBody request: Transaction): TransactionService.TransactionerMessage =
-        service.reduceAmount(request)
-
-    @PostMapping("admin=851851/einzahlen")
-    fun increaseAmount(@RequestBody request: Transaction): TransactionService.TransactionerMessage =
-        service.increaseAmount(request)
-
-
-    @GetMapping("/admin=851851/all")
-    fun getAll(): Messager.TransactionsMessage =
-        service.getAll()
-
-    @GetMapping("admin=851851/{userName}")
-    fun getUserTransactions(@PathVariable userName: String): java.util.ArrayList<TransactionDb>? =
-        service.getUserTransactions(userName)
-
-
-    @GetMapping("/admin=851851/detail")
-    fun getDetail(): ArrayList<TransactionDb> =
-
-        service.getDetail()
 
     @GetMapping("my_transactions")
     fun getMyTransactions(): java.util.ArrayList<TransactionDb>? =

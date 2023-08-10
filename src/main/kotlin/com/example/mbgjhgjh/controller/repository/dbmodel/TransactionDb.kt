@@ -18,7 +18,6 @@ class TransactionDb(
     @GeneratedValue
     var id: UUID? = null
         private set
-
 }
 
  fun TransactionDb.convertToTransaction(): Transaction {

@@ -29,18 +29,6 @@ class DBModel(
     @Column
     var password = ""
         get() = field
-//        set(value) {
-//            println("hey im calledddd")
-//
-//                val passwordEncoder = BCryptPasswordEncoder()
-//                field = passwordEncoder.encode(value)
-//
-//        }
-    fun secureMyPassword(){
-        val passwordEncoder = BCryptPasswordEncoder()
-        var encryptedPassword=passwordEncoder.encode(this.password)
-        this.password= encryptedPassword
-    }
 
     //    @Id
 //    @GeneratedValue

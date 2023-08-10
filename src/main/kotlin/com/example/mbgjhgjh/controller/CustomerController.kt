@@ -23,7 +23,7 @@ import java.util.Date
 import java.util.*
 
 @RestController
-@RequestMapping("customer")
+@RequestMapping("api/customer")
 
 class CustomerController(val repository: UserRepo, val loggedInUserRepo: LoggedInUserRepo) {
 
