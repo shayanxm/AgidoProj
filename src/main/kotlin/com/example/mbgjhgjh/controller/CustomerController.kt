@@ -24,7 +24,7 @@ class CustomerController(val repository: UserRepo) {
 
 
     @PostMapping("/edit")
-    fun editUser(@RequestBody request: Customer): Messager.MessageWithStatus = editUser(request)
+    fun editUser(@RequestBody request: Customer): Messager.MessageWithStatus = service.editUser(request)
 
 
     @GetMapping("/all")
