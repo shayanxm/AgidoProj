@@ -37,7 +37,6 @@ class TransactionService {
     }
 
 
-
     fun reduceMyAmount(request: Transaction): TransactionerMessage {
 
 
@@ -52,10 +51,9 @@ class TransactionService {
     }
 
 
-
     @GetMapping("user_transactions")
     fun getUserTransactions(userName: String): java.util.ArrayList<TransactionDb>? {
-     return   transactionRepo.findAllByCustomerId(userName)
+        return transactionRepo.findAllByCustomerId(userName)
 
     }
 
@@ -130,6 +128,7 @@ class TransactionService {
                 newBalance = updatedCustoemr.gutHaben
                 finalRes = "Transaction is sucessfuly done! new balance for this user=  ${updatedCustoemr.gutHaben} "
                 repository.delete(customer)
+                println("stillpasss" + customer.password + updatedCustoemr.password)
                 repository.save(updatedCustoemr.convertToDBModel())
             } else {
                 finalRes =

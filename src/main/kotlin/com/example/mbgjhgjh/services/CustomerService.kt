@@ -19,7 +19,6 @@ class CustomerService {
     }
 
 
-
     fun createNewUser(customer: Customer): Messager.MessageWithStatus {
         if (!isUniqueUserName(customer.userName))
             return Messager.MessageWithStatus(
@@ -29,12 +28,8 @@ class CustomerService {
         if (customer.password.length <= 6)
             return Messager.MessageWithStatus(false, "entered password is too short. pls give at least 6 characters")
 
-        var currentCustomer = Customer(customer.userName)
-        currentCustomer.password=customer.password
-        currentCustomer.gutHaben = customer.gutHaben
-        currentCustomer.firstName = customer.firstName
-        currentCustomer.lastName = customer.lastName
 
+        customer.secureMyPassword()
 
         userRepo.save(customer.convertToDBModel())
 
@@ -42,10 +37,9 @@ class CustomerService {
 
     }
 
-    fun findByUserName(username:String):Customer?{
+    fun findByUserName(username: String): Customer? {
         return userRepo.findByUserName(username)?.convertToCustomer()
     }
-
 
 
     fun counter(): UserCount = UserCount(userRepo.count().toInt())

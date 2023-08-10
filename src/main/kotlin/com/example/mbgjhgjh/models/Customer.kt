@@ -13,13 +13,15 @@ data class Customer(
 ) {
 
     var password: String = ""
-//        @JsonIgnore
+        //        @JsonIgnore
         get() = field
     var firstName: String = ""
     var lastName: String = ""
     var gutHaben: Double = 0.0
     fun comparePassword(password: String): Boolean {
-        print("passes"+password+this.password)
+        println("real:" + password )
+        println( this.password)
+        println(BCryptPasswordEncoder().matches("112sxssxxx1", this.password))
         return BCryptPasswordEncoder().matches(password, this.password)
     }
 
@@ -38,6 +40,11 @@ data class Customer(
         return userName.hashCode()
     }
 
+    fun secureMyPassword(){
+        val passwordEncoder = BCryptPasswordEncoder()
+        var encryptedPassword=passwordEncoder.encode(this.password)
+        this.password= encryptedPassword
+    }
 
 }
 
