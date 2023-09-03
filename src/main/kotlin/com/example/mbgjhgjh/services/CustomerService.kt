@@ -25,7 +25,7 @@ class CustomerService {
                 false,
                 "customerId \"${customer.userName}\"  already exists choose something unique"
             )
-        if (customer.password.length <= 6)
+        if (customer.password.length < 6)
             return Messager.MessageWithStatus(false, "entered password is too short. pls give at least 6 characters")
 
 

@@ -79,7 +79,7 @@ class CustomerController(val repository: UserRepo, val loggedInUserRepo: LoggedI
 
     }
 
-    @GetMapping("user")
+    @GetMapping("logedin_acc")
     fun user(@CookieValue("jwt") jwt: String?): ResponseEntity<Any> {
         try {
 
