@@ -4,6 +4,7 @@ import com.example.mbgjhgjh.controller.repository.LoggedInUserRepo
 import com.example.mbgjhgjh.controller.repository.UserRepo
 import com.example.mbgjhgjh.controller.repository.dbmodel.LoggedInUserDb
 import com.example.mbgjhgjh.dtos.LoginDTO
+import com.example.mbgjhgjh.dtos.UserDto
 import com.example.mbgjhgjh.models.Customer
 import com.example.mbgjhgjh.models.Messager
 import com.example.mbgjhgjh.models.Utiles
@@ -40,7 +41,7 @@ class CustomerController(val repository: UserRepo, val loggedInUserRepo: LoggedI
 
 
     @GetMapping("admin=851851/all")
-    fun getAll(): List<Customer> = service.getAllCustomers()
+    fun getAll(): List<UserDto> = service.getAllCustomers()
 
 
     @GetMapping("admin=851851/count")
@@ -52,7 +53,7 @@ class CustomerController(val repository: UserRepo, val loggedInUserRepo: LoggedI
         if (loggedInUserRepo.count().toInt()!=0)
             return ResponseEntity.badRequest().body(Messager.PlainMessage("some one is alrady loged in, pls logout first"))
 
-        val user = service.findByUserName(request.userName)
+        val user = service.findByUserName1(request.userName)
         if (user == null) {
             return ResponseEntity.badRequest().body(Messager.PlainMessage("user not founnd"))
         }

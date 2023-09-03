@@ -7,11 +7,13 @@ import com.example.mbgjhgjh.controller.repository.dbmodel.LoggedInUserDb
 import com.example.mbgjhgjh.controller.repository.dbmodel.TransactionDb
 import com.example.mbgjhgjh.controller.repository.dbmodel.convertToTransaction
 import com.example.mbgjhgjh.dtos.LoginDTO
+import com.example.mbgjhgjh.dtos.UserDto
 import com.example.mbgjhgjh.models.Messager
 import com.example.mbgjhgjh.models.Transaction
 import com.example.mbgjhgjh.models.Utiles
 import com.example.mbgjhgjh.models.Utiles.aresameDate
 import com.example.mbgjhgjh.models.convertToTransactionModel
+import com.example.mbgjhgjh.services.CustomerService
 import com.example.mbgjhgjh.services.TransactionService
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
@@ -35,6 +37,14 @@ class Manager(
     @Autowired
     lateinit var service: TransactionService
 
+    @Autowired
+    lateinit var customerService: CustomerService
+
+    @GetMapping("allusers")
+    fun getAllUsers(): List<UserDto> {
+        if (isAdminLoggedIn()) return customerService.getAllCustomers()
+        else return emptyList()
+    }
 
     @PostMapping("/auszahlen")
     fun reduceAmount(@RequestBody request: Transaction): TransactionService.TransactionerMessage {

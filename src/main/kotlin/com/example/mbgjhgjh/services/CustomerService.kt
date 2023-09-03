@@ -2,6 +2,8 @@ package com.example.mbgjhgjh.services
 
 import com.example.mbgjhgjh.controller.repository.UserRepo
 import com.example.mbgjhgjh.controller.repository.dbmodel.convertToCustomer
+import com.example.mbgjhgjh.controller.repository.dbmodel.convertToUserDto
+import com.example.mbgjhgjh.dtos.UserDto
 import com.example.mbgjhgjh.models.Customer
 import com.example.mbgjhgjh.models.Messager
 import com.example.mbgjhgjh.models.convertToDBModel
@@ -14,8 +16,8 @@ class CustomerService {
     lateinit var userRepo: UserRepo
 
 
-    fun getAllCustomers(): List<Customer> {
-        return userRepo.findAll().map { it.convertToCustomer() }
+    fun getAllCustomers(): List<UserDto> {
+        return userRepo.findAll().map { it.convertToUserDto() }
     }
 
 
@@ -37,10 +39,12 @@ class CustomerService {
 
     }
 
-    fun findByUserName(username: String): Customer? {
+    fun findByUserName1(username: String): Customer? {
         return userRepo.findByUserName(username)?.convertToCustomer()
     }
-
+    fun findByUserName(username: String): UserDto? {
+        return userRepo.findByUserName(username)?.convertToUserDto()
+    }
 
     fun counter(): UserCount = UserCount(userRepo.count().toInt())
     data class UserCount(val userCount: Int)
