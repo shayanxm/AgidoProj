@@ -54,7 +54,7 @@ class TransactionControllerTest {
     }
 
     @Test
-    fun testGetMyTransactions() {
+    fun `Should return transactions`() {
         `when`(loggedInUserRepo.findById(1)).thenReturn(Optional.of(LoggedInUserDb(1, "testUser")))
         `when`(transactionService.getUserTransactions("testUser")).thenReturn(null) // You can change this as needed
 
@@ -65,7 +65,7 @@ class TransactionControllerTest {
     }
 
     @Test
-    fun testPayOutMyAccount() {
+    fun `should reduce amount successfly`() {
         `when`(loggedInUserRepo.findById(1)).thenReturn(Optional.of(LoggedInUserDb(1, "testUser")))
         `when`(transactionService.reduceMyAmount(any())).thenReturn(
             TransactionService.TransactionerMessage(
@@ -82,7 +82,7 @@ class TransactionControllerTest {
     }
 
     @Test
-    fun testPayInMyAccount() {
+    fun `should pay in Money`() {
         `when`(loggedInUserRepo.findById(1)).thenReturn(Optional.of(LoggedInUserDb(1, "testUser")))
         `when`(transactionService.increaseMyAmount(any())).thenReturn(
             TransactionService.TransactionerMessage(

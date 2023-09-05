@@ -210,7 +210,6 @@ class AdminControllerTest {
             .andExpect(MockMvcResultMatchers.content().json("{\"message\":\"Admin successfully logged out\"}"))
     }
 
-    // Add more test cases for your other controller methods as needed
 
     private inline fun <reified T> T.toJson(): String = ObjectMapper().writeValueAsString(this)
 }
