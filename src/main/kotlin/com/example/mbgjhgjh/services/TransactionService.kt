@@ -6,167 +6,101 @@ import com.example.mbgjhgjh.controller.repository.dbmodel.TransactionDb
 import com.example.mbgjhgjh.controller.repository.dbmodel.convertToCustomer
 import com.example.mbgjhgjh.controller.repository.dbmodel.convertToTransaction
 import com.example.mbgjhgjh.models.*
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.GetMapping
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
-import kotlin.collections.ArrayList
 
 @Service
-class TransactionService {
+class TransactionService(
+    private val transactionRepo: TransactionRepo,
+    private val userRepository: UserRepo
+) {
 
-    @Autowired
-    lateinit var transactionRepo: TransactionRepo
+    fun reduceAmount(request: Transaction): TransactionerMessage =
+        transactioner(request, false)
 
-    @Autowired
-    lateinit var repository: UserRepo
+    fun increaseAmount(request: Transaction): TransactionerMessage =
+        transactioner(request, true)
 
-    fun reduceAmount(request: Transaction): TransactionerMessage {
+    fun reduceMyAmount(request: Transaction): TransactionerMessage =
+        transactioner(request, false)
 
+    fun increaseMyAmount(request: Transaction): TransactionerMessage =
+        transactioner(request, true)
 
-        return transactioner(request, false)
+    fun getUserTransactions(userName: String): List<TransactionDb>? =
+        transactionRepo.findAllByCustomerId(userName)
 
-    }
+    fun getAll(): TransactionsMessage {
+        val transactions = transactionRepo.findAll().map { it.convertToTransaction() }
+        val todayTransactions = transactions.filter { aresameDate(it.date) }
 
-    fun increaseAmount(request: Transaction): TransactionerMessage {
+        val (payIn, payOut) = todayTransactions.partition { it.transactionValue > 0 }
+        val totalSucessTransactions = todayTransactions.filter { it.isValidTransaction }
+            .sumOf { it.transactionValue }
 
-        return transactioner(request, true)
-
-    }
-
-
-    fun reduceMyAmount(request: Transaction): TransactionerMessage {
-
-
-        return transactioner(request, false)
-
-    }
-
-    fun increaseMyAmount(request: Transaction): TransactionerMessage {
-
-        return transactioner(request, true)
-
-    }
-
-
-    @GetMapping("user_transactions")
-    fun getUserTransactions(userName: String): java.util.ArrayList<TransactionDb>? {
-        return transactionRepo.findAllByCustomerId(userName)
-
-    }
-
-
-    fun getAll(): Messager.TransactionsMessage {
-
-        var finalres = ArrayList<TransactionDb>()
-        var res = transactionRepo.findAll().map { it.convertToTransaction() }
-
-        res.find { aresameDate(it.date) }
-        res.forEach {
-            if (aresameDate(it.date))
-                finalres.add(it.convertToTransactionModel())
-        }
-
-        var gesamtBetrag = 0.0
-        var transaktionAnzahl = 0
-        var failedTransactions = 0
-        var payIn = 0.0
-        var payOut = 0.0
-        finalres.forEach { element ->
-            if (element.isValidTransaction) {
-                if (element.transactionValue > 0) payIn += element.transactionValue
-                if (element.transactionValue < 0) payOut -= element.transactionValue
-
-                gesamtBetrag += element.transactionValue
-                transaktionAnzahl++
-            } else failedTransactions++
-        }
-
-        return Messager.TransactionsMessage(
-            transaktionAnzahl,
-            failedTransactions,
-            payIn,
-            payOut,
-            gesamtBetrag
+        return TransactionsMessage(
+            todayTransactions.size,
+            todayTransactions.count { !it.isValidTransaction },
+            payIn.sumOf { it.transactionValue },
+            payOut.sumOf { -it.transactionValue },
+            totalSucessTransactions
         )
-
-
     }
 
+    fun getDetail(): List<TransactionDb> =
+        transactionRepo.findAll().filter { aresameDate(it.date) }
 
-    fun getDetail(): ArrayList<TransactionDb> {
-
-        var finalres = ArrayList<TransactionDb>()
-        var res = transactionRepo.findAll().map { it }
-
-        res.forEach {
-            if (aresameDate(it.date))
-                finalres.add(it)
+    private fun transactioner(request: Transaction, isPayIn: Boolean): TransactionerMessage {
+        val customer = userRepository.findById(request.customerId).orElse(null)?.convertToCustomer()
+        if (customer == null || customer.gutHaben < 0) {
+            return TransactionerMessage(
+                false,
+                "Transaction failed! No user with customerId:${request.customerId} found or insufficient balance.",
+                0.0
+            )
         }
-        return finalres
-    }
 
-    fun transactioner(request: Transaction, istEinzahlen: Boolean): TransactionerMessage {
-        var finalRes = ""
-        var failed = false
-        var newBalance = 0.0
-        repository.findById(request.customerId).map { customer ->
-            val updatedCustoemr: Customer = customer.convertToCustomer()
-            newBalance = updatedCustoemr.gutHaben
-
-            if (istEinzahlen)
-                updatedCustoemr.gutHaben += request.transactionValue
-            else
-                updatedCustoemr.gutHaben -= request.transactionValue
-
-            if (updatedCustoemr.gutHaben > 0) {
-                newBalance = updatedCustoemr.gutHaben
-                finalRes = "Transaction is sucessfuly done! new balance for this user=  ${updatedCustoemr.gutHaben} "
-                repository.delete(customer)
-                println("stillpasss" + customer.password + updatedCustoemr.password)
-                repository.save(updatedCustoemr.convertToDBModel())
-            } else {
-                finalRes =
-                    "Transaction failed due low curreny.user need  ${-updatedCustoemr.gutHaben} more to do this Transaction"
-                failed = true
+        if (isPayIn) {
+            customer.gutHaben += request.transactionValue
+        } else {
+            if (customer.gutHaben < request.transactionValue) {
+                return TransactionerMessage(
+                    false,
+                    "Transaction failed! Insufficient balance. User needs ${-customer.gutHaben} more to complete this Transaction.",
+                    customer.gutHaben
+                )
             }
+            customer.gutHaben -= request.transactionValue
         }
 
+        userRepository.save(customer.convertToDBModel())
+        val finalRes = if (isPayIn) {
+            "Transaction is successfully done! New balance for this user= ${customer.gutHaben}"
+        } else {
+            "Transaction is successfully done! New balance for this user= ${customer.gutHaben}"
+        }
 
-        if (!istEinzahlen) request.transactionValue = -request.transactionValue
-        if (failed) request.isValidTransaction = false
+        request.isValidTransaction = true
         transactionRepo.save(request.convertToTransactionModel())
 
-        if (repository.findById(request.customerId).isEmpty) {
-            finalRes =
-                "Transaction failed! no user with customerId:${request.customerId} found!"
-            failed = true
-        }
-        return TransactionerMessage(!failed, finalRes, newBalance)
-
+        return TransactionerMessage(true, finalRes, customer.gutHaben)
     }
 
-    fun aresameDate(givenDate: Date): Boolean {
-        if (givenDate.toLocalDate() == Date().toLocalDate()) {
-            println("The two dates are the same.")
-            return true
-        } else {
-            println("The two dates are different.")
-            return false
-        }
+    private fun aresameDate(givenDate: Date): Boolean =
+        givenDate.toLocalDate() == LocalDate.now()
 
-    }
+    private fun Date.toLocalDate(): LocalDate =
+        this.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
 
-    fun Date.toLocalDate(): LocalDate {
-        return this.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-    }
-
-    data class TransactionerMessage(val sucessfull: Boolean, val message: String, val newBalance: Double)
+    data class TransactionerMessage(val successful: Boolean, val message: String, val newBalance: Double)
 
     data class TransactionsMessage(
-        val TodaySucessfullTransactions: Int, val failedTransactinos: Int, val totalPayIn: Double,
-        val totalPayOut: Double, val totalSucessTransactions: Double
+        val todaySuccessfulTransactions: Int,
+        val failedTransactions: Int,
+        val totalPayIn: Double,
+        val totalPayOut: Double,
+        val totalSuccessfulTransactions: Double
     )
 }

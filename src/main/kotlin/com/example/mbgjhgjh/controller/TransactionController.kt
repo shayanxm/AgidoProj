@@ -16,20 +16,17 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
 import javax.print.attribute.standard.JobOriginatingUserName
-
 @RestController
 @RequestMapping("api/transaction")
-
-class TransactionController(val repository: UserRepo, val loggedInRepo: LoggedInUserRepo) {
-
-    @Autowired
-    lateinit var service: TransactionService
-
+class TransactionController(
+    private val repository: UserRepo,
+    private val loggedInRepo: LoggedInUserRepo,
+    private val service: TransactionService
+) {
 
     @GetMapping("my_transactions")
-    fun getMyTransactions(): java.util.ArrayList<TransactionDb>? =
+    fun getMyTransactions(): List<TransactionDb>? =
         service.getUserTransactions(loggedInUserId())
-
 
     @PostMapping("payout/{amount}")
     fun payOutMyAccount(@PathVariable amount: Double): TransactionService.TransactionerMessage =
@@ -39,16 +36,8 @@ class TransactionController(val repository: UserRepo, val loggedInRepo: LoggedIn
     fun payInMyAccount(@PathVariable amount: Double): TransactionService.TransactionerMessage =
         service.increaseMyAmount(Transaction(loggedInUserId(), amount))
 
-
-    fun loggedInUserId(): String {
-        var loggedinUserId = loggedInRepo.findById(1)
-        var username = ""
-        // loggedInRepo.findAll().forEach { it.userName }
-        loggedinUserId.map { username = it.userName }
-        print("$username")
-        return username
-        // Jwts.parser().setSigningKey(Utiles.secretKey).parseClaimsJws(Utiles.loggedinusers).body.issuer
+    private fun loggedInUserId(): String {
+        val loggedinUser = loggedInRepo.findById(1)
+        return loggedinUser.map { it.userName }.orElse("")
     }
-
 }
-

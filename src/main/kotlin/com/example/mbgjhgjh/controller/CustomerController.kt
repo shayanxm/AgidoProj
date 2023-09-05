@@ -25,91 +25,69 @@ import java.util.*
 
 @RestController
 @RequestMapping("api/customer")
-
-class CustomerController(val repository: UserRepo, val loggedInUserRepo: LoggedInUserRepo) {
-
-
-    @Autowired
-    lateinit var service: CustomerService
+class CustomerController(
+    private val repository: UserRepo,
+    private val loggedInUserRepo: LoggedInUserRepo,
+    private val service: CustomerService
+) {
 
     @PostMapping("/new")
-    fun createNewUser(@RequestBody request: Customer): Messager.MessageWithStatus = service.createNewUser(request)
-
-
-    @PostMapping("admin=851851/edit")
-    fun editUser(@RequestBody request: Customer): Messager.MessageWithStatus = service.editUser(request)
-
-//
-//    @GetMapping("admin=851851/all")
-//    fun getAll(): List<UserDto> = service.getAllCustomers()
-
-
-//    @GetMapping("admin=851851/count")
-//    fun counter(): CustomerService.UserCount = service.counter()
-
+    fun createNewUser(@RequestBody request: Customer): Messager.MessageWithStatus =
+        service.createNewUser(request)
 
     @PostMapping("/login")
-    fun login(@RequestBody request: LoginDTO, respone: HttpServletResponse): ResponseEntity<Any> {
-        if (loggedInUserRepo.count().toInt()!=0)
-            return ResponseEntity.badRequest().body(Messager.PlainMessage("some one is alrady loged in, pls logout first"))
+    fun login(@RequestBody request: LoginDTO, response: HttpServletResponse): ResponseEntity<Any> {
+        if (loggedInUserRepo.count().toInt() != 0)
+            return ResponseEntity.badRequest().body(Messager.PlainMessage("Someone is already logged in, please log out first"))
 
         val user = service.findByUserName1(request.userName)
         if (user == null) {
-            return ResponseEntity.badRequest().body(Messager.PlainMessage("user not founnd"))
+            return ResponseEntity.badRequest().body(Messager.PlainMessage("User not found"))
         }
         if (!user.comparePassword(request.password)) {
             return ResponseEntity.badRequest()
-                .body(Messager.PlainMessage("invalid password"))
+                .body(Messager.PlainMessage("Invalid password"))
         }
 
-
         val issuer = user.userName
-        loggedInUserRepo.save(LoggedInUserDb(1,issuer))
+        loggedInUserRepo.save(LoggedInUserDb(1, issuer))
 
         val jwt = Jwts.builder()
             .setIssuer(issuer)
             .setExpiration(Date(System.currentTimeMillis() + 60 * 24 * 10000)) // 1 day
-            .signWith(SignatureAlgorithm.HS256, secretKey) // Use HS256 with your secret key
+            .signWith(SignatureAlgorithm.HS256, Utiles.secretKey) // Use HS256 with your secret key
             .compact()
         Utiles.loggedinusers = jwt
         val cookie = Cookie("jwt", jwt)
         cookie.isHttpOnly = true
-        respone.addCookie(cookie)
+        response.addCookie(cookie)
 
-        return ResponseEntity.ok(Messager.PlainMessage("successfully logedin, welcome ${user.userName}"))
-
+        return ResponseEntity.ok(Messager.PlainMessage("Successfully logged in, welcome ${user.userName}"))
     }
 
-    @GetMapping("logedin_acc")
+    @GetMapping("loggedin_acc")
     fun user(@CookieValue("jwt") jwt: String?): ResponseEntity<Any> {
         try {
+            if (jwt == null) return ResponseEntity.status(401).body(Messager.PlainMessage("Unauthorized"))
 
-            if (jwt == null) return ResponseEntity.status(401).body(Messager.PlainMessage("unauthentictied"))
-
-            val body = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(jwt).body
-            return ResponseEntity.ok(this.service.findByUserName(body.issuer))
+            val body = Jwts.parser().setSigningKey(Utiles.secretKey).parseClaimsJws(jwt).body
+            return ResponseEntity.ok(service.findByUserName(body.issuer))
         } catch (e: Exception) {
-            return ResponseEntity.status(401).body(Messager.PlainMessage("unauthentictied"))
+            return ResponseEntity.status(401).body(Messager.PlainMessage("Unauthorized"))
         }
-
     }
 
     @PostMapping("logout")
-    fun logout(respone: HttpServletResponse): ResponseEntity<Any> {
-        if (loggedInUserRepo.count().toInt()==0)
-        return ResponseEntity.badRequest().body(Messager.PlainMessage("no one is logged in"))
+    fun logout(response: HttpServletResponse): ResponseEntity<Any> {
+        if (loggedInUserRepo.count().toInt() == 0)
+            return ResponseEntity.badRequest().body(Messager.PlainMessage("No one is logged in"))
 
-        var cookie = Cookie("jwt", "value")
+        val cookie = Cookie("jwt", "")
         cookie.maxAge = 0
         Utiles.loggedinusers = ""
         loggedInUserRepo.deleteAll()
 
-        respone.addCookie(cookie)
-        return ResponseEntity.ok(Messager.PlainMessage("sucessfly logedout"))
+        response.addCookie(cookie)
+        return ResponseEntity.ok(Messager.PlainMessage("Successfully logged out"))
     }
-
-
 }
-
-
-

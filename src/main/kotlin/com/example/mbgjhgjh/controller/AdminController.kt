@@ -22,121 +22,78 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 import kotlin.collections.ArrayList
-
 @RestController
 @RequestMapping("api/secure/")
 class AdminController(
-    val transactionRepo: TransactionRepo,
-    val repository: UserRepo,
-    val loggedInRepo: LoggedInUserRepo,
+    private val service: TransactionService,
+    private val customerService: CustomerService,
+    private val loggedInUserRepo: LoggedInUserRepo,
     @Value("\${example.mbgjhgjh.buildNumber}") val buildNumber: String
 ) {
 
-
-    @Autowired
-    lateinit var service: TransactionService
-
-    @Autowired
-    lateinit var customerService: CustomerService
-
     @GetMapping("allusers")
-    fun getAllUsers(): List<UserDto> {
-        if (isAdminLoggedIn()) return customerService.getAllCustomers()
-        else return emptyList()
-    }
+    fun getAllUsers(): List<UserDto> =
+        if (isAdminLoggedIn()) customerService.getAllCustomers() else emptyList()
 
     @GetMapping("count")
     fun counter(): CustomerService.UserCount = customerService.counter()
 
     @PostMapping("edit")
-    fun editUser(@RequestBody request: Customer): Messager.MessageWithStatus = customerService.editUser(request)
+    fun editUser(@RequestBody request: Customer): Messager.MessageWithStatus =
+        customerService.editUser(request)
 
     @PostMapping("/cashout")
-    fun reduceAmount(@RequestBody request: Transaction): TransactionService.TransactionerMessage {
-
-        if (isAdminLoggedIn()) return service.reduceAmount(request)
-        else return TransactionService.TransactionerMessage(false, "acess diniied", 0.0)
-    }
+    fun reduceAmount(@RequestBody request: Transaction): TransactionService.TransactionerMessage =
+        if (isAdminLoggedIn()) service.reduceAmount(request)
+        else TransactionService.TransactionerMessage(false, "access denied", 0.0)
 
     @PostMapping("/payin")
-    fun increaseAmount(@RequestBody request: Transaction): TransactionService.TransactionerMessage {
-        if (isAdminLoggedIn()) return service.increaseAmount(request)
-        else return TransactionService.TransactionerMessage(false, "acess diniied", 0.0)
-    }
-
+    fun increaseAmount(@RequestBody request: Transaction): TransactionService.TransactionerMessage =
+        if (isAdminLoggedIn()) service.increaseAmount(request)
+        else TransactionService.TransactionerMessage(false, "access denied", 0.0)
 
     @GetMapping("/all")
-    fun getAll(): Messager.TransactionsMessage {
-        if (isAdminLoggedIn())
-            return service.getAll()
-        else return Messager.TransactionsMessage(0, 0, 0.0, 0.0, 0.0)
-    }
+    fun getAll(): TransactionService.TransactionsMessage =
+        if (isAdminLoggedIn()) service.getAll()
+        else TransactionService.TransactionsMessage(0, 0, 0.0, 0.0, 0.0)
 
+    @GetMapping("user_transactions/{userName}")
+    fun getUserTransactions(@PathVariable userName: String): List<TransactionDb> =
+        if (isAdminLoggedIn()) service.getUserTransactions(userName) ?: emptyList()
+        else emptyList()
 
-    @GetMapping("/{userName}")
-    fun getUserTransactions(@PathVariable userName: String): java.util.ArrayList<TransactionDb>? {
-        if (isAdminLoggedIn())
-            return service.getUserTransactions(userName)
-        else return java.util.ArrayList()
-
-    }
-
-    @GetMapping("/detail")
-    fun getDetail(): ArrayList<TransactionDb> {
-        if (isAdminLoggedIn()) return service.getDetail()
-        else return java.util.ArrayList()
-    }
-
-//    @GetMapping("/version")
-//    fun getAlXl(): Messager.PlainMessage {
-//        return Messager.PlainMessage(buildNumber)
-//    }
-
+    @GetMapping("/transactions/today")
+    fun getDetail(): List<TransactionDb> =
+        if (isAdminLoggedIn()) service.getDetail()
+        else emptyList()
 
     @PostMapping("/login")
     fun loginAsAdmin(@RequestBody request: LoginDTO): ResponseEntity<Any> {
-        if (loggedInRepo.count().toInt() != 0)
+        if (loggedInUserRepo.count().toInt() != 0)
             return ResponseEntity.badRequest()
-                .body(Messager.PlainMessage("some one is already logged in, pls logout first"))
-
+                .body(Messager.PlainMessage("Someone is already logged in, please logout first"))
 
         if (request.userName == "admin" && request.password == "admin") {
-            loggedInRepo.save(LoggedInUserDb(2, "Admin"))
-
-            //sucess
-            return ResponseEntity.badRequest().body(Messager.PlainMessage("successfully loged in as Admin"))
+            loggedInUserRepo.save(LoggedInUserDb(2, "Admin"))
+            return ResponseEntity.ok(Messager.PlainMessage("Successfully logged in as Admin"))
         }
-        return ResponseEntity.badRequest()
-            .body(Messager.PlainMessage("invalid combination of username and password!"))
 
+        return ResponseEntity.badRequest()
+            .body(Messager.PlainMessage("Invalid combination of username and password!"))
     }
 
     @PostMapping("logout")
     fun logoutAsAdmin(): ResponseEntity<Any> {
-        if (loggedInRepo.count().toInt() == 0)
-            return ResponseEntity.badRequest().body(Messager.PlainMessage("no one is logged in"))
+        if (loggedInUserRepo.count().toInt() == 0)
+            return ResponseEntity.badRequest().body(Messager.PlainMessage("No one is logged in"))
 
-        loggedInRepo.deleteAll()
-        return ResponseEntity.ok(Messager.PlainMessage("Admin successfully logout"))
+        loggedInUserRepo.deleteAll()
+        return ResponseEntity.ok(Messager.PlainMessage("Admin successfully logged out"))
     }
 
-    fun isAdminLoggedIn(): Boolean {
-        println("hi")
-        if (loggedInRepo.count().toInt() == 0) return false
-        var loggedinUserId = loggedInRepo.findById(2)
-        var usernamex = ""
-        loggedinUserId.map { usernamex = it.userName }
-        println(usernamex)
-        if (usernamex == "Admin") {
-            println("loged in")
-            return true
-        }
-
-        return false
+    private fun isAdminLoggedIn(): Boolean {
+        if (loggedInUserRepo.count().toInt() == 0) return false
+        val loggedInUser = loggedInUserRepo.findById(2).orElse(null)
+        return loggedInUser?.userName == "Admin"
     }
 }
-
-
-
-
-
