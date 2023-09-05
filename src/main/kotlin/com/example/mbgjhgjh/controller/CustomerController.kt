@@ -39,13 +39,13 @@ class CustomerController(val repository: UserRepo, val loggedInUserRepo: LoggedI
     @PostMapping("admin=851851/edit")
     fun editUser(@RequestBody request: Customer): Messager.MessageWithStatus = service.editUser(request)
 
+//
+//    @GetMapping("admin=851851/all")
+//    fun getAll(): List<UserDto> = service.getAllCustomers()
 
-    @GetMapping("admin=851851/all")
-    fun getAll(): List<UserDto> = service.getAllCustomers()
 
-
-    @GetMapping("admin=851851/count")
-    fun counter(): CustomerService.UserCount = service.counter()
+//    @GetMapping("admin=851851/count")
+//    fun counter(): CustomerService.UserCount = service.counter()
 
 
     @PostMapping("/login")

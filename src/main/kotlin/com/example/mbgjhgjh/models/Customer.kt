@@ -1,6 +1,7 @@
 package com.example.mbgjhgjh.models
 
 import com.example.mbgjhgjh.controller.repository.dbmodel.DBModel
+import com.example.mbgjhgjh.dtos.UserDto
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 
@@ -8,19 +9,17 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 data class Customer(
 
     var userName: String
-
-
 ) {
-
     var password: String = ""
         //        @JsonIgnore
         get() = field
     var firstName: String = ""
     var lastName: String = ""
     var gutHaben: Double = 0.0
-    fun comparePassword(password: String): Boolean {
-        println("real:" + password )
-        println( this.password)
+
+    public fun comparePassword(password: String): Boolean {
+        println("real:" + password)
+        println(this.password)
         println(BCryptPasswordEncoder().matches("112sxssxxx1", this.password))
         return BCryptPasswordEncoder().matches(password, this.password)
     }
@@ -40,10 +39,10 @@ data class Customer(
         return userName.hashCode()
     }
 
-    fun secureMyPassword(){
+    fun secureMyPassword() {
         val passwordEncoder = BCryptPasswordEncoder()
-        var encryptedPassword=passwordEncoder.encode(this.password)
-        this.password= encryptedPassword
+        var encryptedPassword = passwordEncoder.encode(this.password)
+        this.password = encryptedPassword
     }
 
 }
@@ -57,3 +56,12 @@ public fun Customer.convertToDBModel(): DBModel {
     return dbModel
 }
 
+
+public fun Customer.convertToUserDto(): UserDto {
+    var userDto = UserDto()
+    userDto.userName = this.userName
+    userDto.gutHaben = this.gutHaben
+    userDto.firstName = this.firstName
+    userDto.lastName = this.lastName
+    return userDto
+}

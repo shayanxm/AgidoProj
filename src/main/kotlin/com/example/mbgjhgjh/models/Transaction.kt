@@ -21,7 +21,7 @@ fun Transaction.convertToTransactionModel(): TransactionDb {
         isValidTransaction = this.isValidTransaction
     )
     transactionDb.isValidTransaction = this.isValidTransaction
-   // transactionDb.id = this.id
+    // transactionDb.id = this.id
 
     return transactionDb
 

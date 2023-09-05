@@ -8,9 +8,11 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import org.apache.catalina.User
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.stereotype.Repository
 import java.util.*
 
 @Entity
+
 
 class DBModel(
 
