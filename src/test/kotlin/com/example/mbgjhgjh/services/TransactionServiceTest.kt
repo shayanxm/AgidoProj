@@ -6,175 +6,105 @@ import com.example.mbgjhgjh.controller.repository.TransactionRepo
 import com.example.mbgjhgjh.controller.repository.UserRepo
 import com.example.mbgjhgjh.controller.repository.dbmodel.TransactionDb
 import com.example.mbgjhgjh.controller.repository.dbmodel.convertToTransaction
-import com.example.mbgjhgjh.models.Transaction
-import com.example.mbgjhgjh.models.Messager
-import com.example.mbgjhgjh.models.convertToTransactionModel
-import com.example.mbgjhgjh.models.Customer
+import com.example.mbgjhgjh.models.*
 import com.example.mbgjhgjh.services.TransactionService
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.util.*
 
+
+@SpringBootTest
 class TransactionServiceTest {
 
-    @Mock
-    lateinit var transactionRepo: TransactionRepo
+    private lateinit var transactionService: TransactionService
 
-    @Mock
-    lateinit var userRepo: UserRepo
-
-    lateinit var transactionService: TransactionService
+    private val transactionRepo = mockk<TransactionRepo>()
+    private val userRepo = mockk<UserRepo>()
 
     @BeforeEach
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
-        transactionService = TransactionService()
-        transactionService.transactionRepo = transactionRepo
-        transactionService.repository = userRepo
+        transactionService = TransactionService(transactionRepo, userRepo)
     }
 
     @Test
-    fun testReduceAmount() {
-        // Mock the behavior of transactioner() method for reducing amount
-        val transaction = Transaction("user1", 50.0)
-        val transactionerMessage = TransactionService.TransactionerMessage(
-            true,
-            "Transaction is successfully done! new balance for this user=  50.0 ",
-            50.0
+    fun `should reduce Amount sucessfully`() {
+        // Arrange
+        val request = Transaction("userId", 50.0)
+
+
+        val user = Customer(
+            userName = "testuser"
         )
-        Mockito.`when`(transactionService.transactioner(transaction, false)).thenReturn(transactionerMessage)
+        user.password = "testpassword"
+        user.gutHaben = 100.0
+        user.firstName = "John"
+        user.lastName = "Doe"
 
-        // Perform the test
-        val result = transactionService.reduceAmount(transaction)
+        every { userRepo.findById("userId") } returns Optional.of(user.convertToDBModel())
+      //  every { transactionRepo.save(any()) } returns slot()
 
-        // Assert the result
-        assert(result == transactionerMessage)
+        // Act
+        val result = transactionService.reduceAmount(request)
+
+        // Assert
+        assertThat(result.successful).isTrue()
+        assertThat(result.message).isEqualTo("Transaction is successfully done! New balance for this user= 50.0")
+        assertThat(result.newBalance).isEqualTo(50.0)
+        assertThat(slot<TransactionDb>().captured.customerId).isEqualTo("userId")
+        assertThat(slot<TransactionDb>().captured.transactionValue).isEqualTo(-50.0)
     }
 
     @Test
-    fun testIncreaseAmount() {
-        // Mock the behavior of transactioner() method for increasing amount
-        val transaction = Transaction("user1", 50.0)
-        val transactionerMessage = TransactionService.TransactionerMessage(
-            true,
-            "Transaction is successfully done! new balance for this user=  50.0 ",
-            50.0
+    fun `shoul not do transaction due low currency`() {
+        // Arrange
+        val request = Transaction("userId", 150.0)
+
+        val user = Customer(
+            userName = "testuser"
         )
-        Mockito.`when`(transactionService.transactioner(transaction, true)).thenReturn(transactionerMessage)
-
-        // Perform the test
-        val result = transactionService.increaseAmount(transaction)
-
-        // Assert the result
-        assert(result == transactionerMessage)
-    }
+        user.password = "testpassword"
+        user.gutHaben = 100.0
+        user.firstName = "John"
+        user.lastName = "Doe"
 
 
-    @Test
-    fun testReduceMyAmount() {
-        // Mock the behavior of transactioner() method for reducing my amount
-        val transaction = Transaction("user1", 50.0)
-        val transactionerMessage = TransactionService.TransactionerMessage(
-            true,
-            "Transaction is successfully done! new balance for this user=  50.0 ",
-            50.0
-        )
-        Mockito.`when`(transactionService.transactioner(transaction, false)).thenReturn(transactionerMessage)
+        every { userRepo.findById("userId") } returns Optional.of(user.convertToDBModel())
 
-        // Perform the test
-        val result = transactionService.reduceMyAmount(transaction)
+        // Act
+        val result = transactionService.reduceAmount(request)
 
-        // Assert the result
-        assert(result == transactionerMessage)
+        // Assert
+        assertThat(result.successful).isFalse()
+        assertThat(result.message).isEqualTo("Transaction failed! Insufficient balance. User needs -100.0 more to complete this Transaction.")
+        assertThat(result.newBalance).isEqualTo(100.0)
     }
 
     @Test
-    fun testIncreaseMyAmount() {
-        // Mock the behavior of transactioner() method for increasing my amount
-        val transaction = Transaction("user1", 50.0)
-        val transactionerMessage = TransactionService.TransactionerMessage(
-            true,
-            "Transaction is successfully done! new balance for this user=  50.0 ",
-            50.0
-        )
-        Mockito.`when`(transactionService.transactioner(transaction, true)).thenReturn(transactionerMessage)
+    fun `should fail when no user found`() {
+        // Arrange
+        val request = Transaction("userId", 50.0)
 
-        // Perform the test
-        val result = transactionService.increaseMyAmount(transaction)
+        every { userRepo.findById("userId") } returns Optional.empty()
 
-        // Assert the result
-        assert(result == transactionerMessage)
+        // Act
+        val result = transactionService.reduceAmount(request)
+
+        // Assert
+        assertThat(result.successful).isFalse()
+        assertThat(result.message).isEqualTo("Transaction failed! No user with customerId:userId found or insufficient balance.")
+        assertThat(result.newBalance).isEqualTo(0.0)
     }
 
-    @Test
-    fun testGetUserTransactions() {
-        // Mock the behavior of transactionRepo.findAllByCustomerId()
-        val user1Transaction1 = TransactionDb("user1", 50.0)
-        val user1Transaction2 = TransactionDb("user1", -30.0)
-        val user2Transaction = TransactionDb("user2", 20.0)
-        val transactions = listOf(user1Transaction1, user1Transaction2)
-        val arrayList = ArrayList(transactions)
 
-        Mockito.`when`(transactionRepo.findAllByCustomerId("user1")).thenReturn(arrayList)
-
-        // Perform the test
-        val result = transactionService.getUserTransactions("user1")
-
-        // Assert the result
-        assert(result == transactions)
-    }
-
-    @Test
-    fun testGetAll() {
-        print("neeeeeeeeeee")
-        // Mock the behavior of transactionRepo.findAll() and aresameDate() method
-        val today = Date()
-        val yesterday = Date(today.time - 86400000) // 1 day ago
-        val transactions = listOf(
-            TransactionDb("user1", 50.0,false, today),
-            TransactionDb("user1", -30.0,false, today),
-            TransactionDb("user1", 20.0,false, yesterday)
-        )
-        val transactionsMessage = Messager.TransactionsMessage(3, 0, 70.0, 30.0, 40.0)
-        Mockito.`when`(transactionRepo.findAll()).thenReturn(transactions)
-        Mockito.`when`(transactionService.aresameDate(today)).thenReturn(true)
-        Mockito.`when`(transactionService.aresameDate(yesterday)).thenReturn(false)
-
-        // Perform the test
-        val result = transactionService.getAll()
-        print("neeeeeeeeeee")
-
-        // Assert the result
-        assert(result == transactionsMessage)
-    }
-
-    @Test
-    fun testGetDetail() {
-        // Mock the behavior of transactionRepo.findAll() and aresameDate() method
-        val today = Date()
-        val yesterday = Date(today.time - 86400000) // 1 day ago
-        val transactions = listOf(
-            TransactionDb("user1", 50.0,false, today),
-            TransactionDb("user1", -30.0,false, today),
-            TransactionDb("user1", 20.0,false, yesterday)
-        )
-        val filteredTransactions = listOf(
-            TransactionDb("user1", 50.0,false, today),
-            TransactionDb("user1", -30.0,false, today)
-        )
-        Mockito.`when`(transactionRepo.findAll()).thenReturn(transactions)
-        Mockito.`when`(transactionService.aresameDate(today)).thenReturn(true)
-        Mockito.`when`(transactionService.aresameDate(yesterday)).thenReturn(false)
-
-        // Perform the test
-        val result = transactionService.getDetail()
-
-        // Assert the result
-        assert(result == filteredTransactions)
-    }
-
-    // Add more test cases for aresameDate(), Date.toLocalDate(), and other methods as needed
 }

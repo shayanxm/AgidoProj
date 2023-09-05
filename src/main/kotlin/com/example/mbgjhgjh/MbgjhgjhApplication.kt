@@ -8,7 +8,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.web.client.RestTemplate
 
-@SpringBootApplication(exclude= [SecurityAutoConfiguration::class])
+@SpringBootApplication
 class MbgjhgjhApplication{
 //	@Bean
 //	fun restTemplate(builder: RestTemplateBuilder): RestTemplate = builder.build()

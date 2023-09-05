@@ -6,8 +6,10 @@ import com.example.mbgjhgjh.dtos.LoginDTO
 import com.example.mbgjhgjh.dtos.UserDto
 import com.example.mbgjhgjh.models.Customer
 import com.example.mbgjhgjh.models.Messager
+import com.example.mbgjhgjh.models.Utiles
 import com.example.mbgjhgjh.models.convertToUserDto
 import com.example.mbgjhgjh.services.CustomerService
+import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Test
@@ -16,146 +18,92 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
-internal class CustomerControllerTest {
-    @Mock
-    lateinit var repository: UserRepo
+@WebMvcTest(CustomerController::class)
+class CustomerControllerTest {
 
-    @Mock
-    lateinit var loggedInUserRepo: LoggedInUserRepo
+    @Autowired
+    private lateinit var mockMvc: MockMvc
 
-    lateinit var customerController: CustomerController
-    private val SECRET_KEY = "your-secret-key"
+    @MockBean
+    private lateinit var customerService: CustomerService
+
+    @MockBean
+    private lateinit var userRepo: UserRepo
+
+    @MockBean
+    private lateinit var loggedInUserRepo: LoggedInUserRepo
 
     @BeforeEach
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
-        val customerService = Mockito.mock(CustomerService::class.java)
-        customerController = CustomerController(repository, loggedInUserRepo)
-        // customerController.secretKey = SECRET_KEY // Inject your secret key
-        customerController.service = customerService
-
-        // Optional: You can set up any required dependencies here
+        MockitoAnnotations.openMocks(this)
     }
 
     @Test
-    fun testCreateNewUser() {
-        // Mock the behavior of the service method
-        val request = Customer("") // Initialize request
-        val expectedResponse = Messager.MessageWithStatus(true, "Created")
-        Mockito.`when`(customerController.service.createNewUser(request)).thenReturn(expectedResponse)
+    fun `should create new user`() {
+       // val customer = Customer("testUser", "password", "John", "Doe", 100.0)
+        val customer = Customer(
+            userName = "testuser"
+        )
+        customer.password = "testpassword"
+        customer.gutHaben = 100.0
+        customer.firstName = "John"
+        customer.lastName = "Doe"
 
-        // Perform the test
-        val result = customerController.createNewUser(request)
+        val successMessage = Messager.MessageWithStatus(true, "User created successfully")
 
-        // Assert the result
-        assert(result == expectedResponse)
+        `when`(customerService.createNewUser(customer)).thenReturn(successMessage)
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/customer/new")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(ObjectMapper().writeValueAsString(customer)))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().json("{\"status\":true,\"message\":\"User created successfully\"}"))
     }
 
     @Test
-    fun testEditUser() {
-        // Mock the behavior of the service method
-        val request = Customer("") // Initialize request
-        val expectedResponse = Messager.MessageWithStatus(true, "Updated")
-        Mockito.`when`(customerController.service.editUser(request)).thenReturn(expectedResponse)
+    fun `should login`() {
+        val loginDTO = LoginDTO()
+        loginDTO.password= Utiles.adminPassword
+        loginDTO.userName= Utiles.adminUserName
+       // val loggedInUser = Customer("testUser", "password", "John", "Doe", 100.0)
+        val loggedInUser = Customer(
+            userName = "testuser"
+        )
+        loggedInUser.password = "testpassword"
+        loggedInUser.gutHaben = 100.0
+        loggedInUser.firstName = "John"
+        loggedInUser.lastName = "Doe"
 
-        // Perform the test
-        val result = customerController.editUser(request)
 
-        // Assert the result
-        assert(result == expectedResponse)
-    }
+        `when`(customerService.findByUserName1(loginDTO.userName)).thenReturn(loggedInUser)
 
-//    @Test
-//    fun testGetAll() {
-//        // Mock the behavior of the service method
-//        val expectedResponse = listOf(UserDto()) // Initialize with expected data
-//        Mockito.`when`(customerController.service.getAllCustomers()).thenReturn(expectedResponse)
-//
-//        // Perform the test
-//        val result = customerController.getAll()
-//
-//        // Assert the result
-//        assert(result == expectedResponse)
-//    }
-//
-//    @Test
-//    fun testCounter() {
-//        // Mock the behavior of the service method
-//        val expectedResponse = CustomerService.UserCount(10) // Initialize with expected count
-//        Mockito.`when`(customerController.service.counter()).thenReturn(expectedResponse)
-//
-//        // Perform the test
-//        val result = customerController.counter()
-//
-//        // Assert the result
-//        assert(result == expectedResponse)
-//    }
-
-    @Test
-    fun testLogin() {
-        // Mock the behavior of the service method and dependencies
-        var request = LoginDTO()
-        request.userName = "username"
-        request.password = "passwrod"
-        val user = Customer("") // Initialize with expected user data
-        val expectedJwt = "your-expected-jwt" // Initialize with an expected JWT token
-        val response = Mockito.mock(HttpServletResponse::class.java)
-        val expectedResponse = ResponseEntity.ok(Messager.PlainMessage("successfully logged in, welcome username"))
-
-        Mockito.`when`(loggedInUserRepo.count()).thenReturn(0)
-        Mockito.`when`(customerController.service.findByUserName1(request.userName)).thenReturn(user)
-        Mockito.`when`(customerController.service.findByUserName(user.userName)).thenReturn(user.convertToUserDto())
-        Mockito.`when`(user.comparePassword( request.password)).thenReturn(true)
-        Mockito.`when`(response.addCookie(Mockito.any())).thenAnswer {
-            val cookie = it.getArgument<Cookie>(0)
-            assert(cookie.name == "jwt")
-            assert(cookie.value == expectedJwt)
-        }
-
-        // Perform the test
-        val result = customerController.login(request, response)
-
-        // Assert the result
-        assert(result == expectedResponse)
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/customer/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(ObjectMapper().writeValueAsString(loginDTO)))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().json("{\"status\":true,\"message\":\"Successfully logged in, welcome testUser\"}"))
     }
 
     @Test
-    fun testUser() {
-        // Mock the behavior of the method
-        val jwt = "your-jwt-token" // Initialize with a valid JWT token
-        val expectedUser = Customer("") // Initialize with expected user data
-        Mockito.`when`(customerController.service.findByUserName(expectedUser.userName))
-            .thenReturn(expectedUser.convertToUserDto())
+    fun `should log out`() {
+        val responseEntity = ResponseEntity.ok(Messager.PlainMessage("Successfully logged out"))
 
-        // Perform the test
-        val result = customerController.user(jwt)
-
-        // Assert the result
-        assert(result.statusCode == HttpStatus.OK)
-        assert(result.body == expectedUser)
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/customer/logout"))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().json("{\"message\":\"Successfully logged out\"}"))
     }
 
-    @Test
-    fun testLogout() {
-        // Mock the behavior of the method and dependencies
-        val response = Mockito.mock(HttpServletResponse::class.java)
-        val expectedResponse = ResponseEntity.ok(Messager.PlainMessage("successfully logged out"))
-
-        Mockito.`when`(loggedInUserRepo.count()).thenReturn(1)
-        Mockito.`when`(response.addCookie(Mockito.any())).thenAnswer {
-            val cookie = it.getArgument<Cookie>(0)
-            assert(cookie.name == "jwt")
-            assert(cookie.maxAge == 0)
-        }
-
-        // Perform the test
-        val result = customerController.logout(response)
-
-        // Assert the result
-        assert(result == expectedResponse)
-    }
 }

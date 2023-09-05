@@ -1,210 +1,216 @@
-import com.example.mbgjhgjh.controller.AdminController
+package com.example.mbgjhgjh.controller
+
 import com.example.mbgjhgjh.controller.repository.LoggedInUserRepo
-import com.example.mbgjhgjh.controller.repository.TransactionRepo
-import com.example.mbgjhgjh.controller.repository.UserRepo
 import com.example.mbgjhgjh.controller.repository.dbmodel.LoggedInUserDb
 import com.example.mbgjhgjh.controller.repository.dbmodel.TransactionDb
 import com.example.mbgjhgjh.dtos.LoginDTO
 import com.example.mbgjhgjh.dtos.UserDto
+import com.example.mbgjhgjh.models.Customer
 import com.example.mbgjhgjh.models.Messager
 import com.example.mbgjhgjh.models.Transaction
-import com.example.mbgjhgjh.models.convertToTransactionModel
+import com.example.mbgjhgjh.models.Utiles
 import com.example.mbgjhgjh.services.CustomerService
 import com.example.mbgjhgjh.services.TransactionService
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.mockito.Mock
-import org.mockito.Mockito
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.junit.jupiter.api.*
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
-import org.springframework.http.ResponseEntity
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.http.MediaType
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.util.*
-import kotlin.collections.ArrayList
 
+@WebMvcTest(AdminController::class)
 class AdminControllerTest {
 
-    @Mock
-    lateinit var transactionRepo: TransactionRepo
+    @Autowired
+    private lateinit var mockMvc: MockMvc
 
-    @Mock
-    lateinit var repository: UserRepo
+    @MockBean
+    private lateinit var transactionService: TransactionService
 
-    @Mock
-    lateinit var loggedInRepo: LoggedInUserRepo
+    @MockBean
+    private lateinit var customerService: CustomerService
 
-    lateinit var adminController: AdminController
+    @MockBean
+    private lateinit var loggedInUserRepo: LoggedInUserRepo
 
     @BeforeEach
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
-        val transactionService = Mockito.mock(TransactionService::class.java)
-        val customerService = Mockito.mock(CustomerService::class.java)
-        adminController = AdminController(transactionRepo, repository, loggedInRepo, "your-build-number")
-        adminController.service = transactionService
-        adminController.customerService = customerService
+        MockitoAnnotations.openMocks(this)
     }
-
-//    @Test
-//    fun testGetAllUsers() {
-//        // Mock the behavior of isAdminLoggedIn() and the service method
-//        Mockito.`when`(adminController.isAdminLoggedIn()).thenReturn(true)
-//        val expectedResponse = listOf(UserDto()) // Initialize with expected data
-//        Mockito.`when`(adminController.customerService.getAllCustomers()).thenReturn(expectedResponse)
-//
-//        // Perform the test
-//        val result = adminController.getAllUsers()
-//        println("---xxx-")
-//        println("---xxx-"+result)
-//
-//        // Assert the result
-//        assert(result == expectedResponse)
-//    }
-
 
     @Test
-    fun testLoginAsAdminX() {
-        // Mock the behavior of loggedInRepo.count()
-        Mockito.`when`(loggedInRepo.count()).thenReturn(0)
+    fun testGetAllUsers() {
+        var user1 = UserDto()
+        var user2 = UserDto()
+        user1.userName = "user1"
+        user2.userName = "user2"
+        val userDtoList = listOf(user1, user2)
 
-        // Test with valid admin credentials
-        val validAdminRequest = LoginDTO()
-        validAdminRequest.userName = "admin"
-        validAdminRequest.password = "admin"
-        val validAdminResponse = ResponseEntity.badRequest().body(Messager.PlainMessage("successfully logged in as Admin"))
-        val resultValidAdmin = adminController.loginAsAdmin(validAdminRequest)
+        `when`(customerService.getAllCustomers()).thenReturn(userDtoList)
 
-        // Assert the results
-        assertEquals(validAdminResponse, resultValidAdmin)
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/secure/allusers"))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().json("[{\"userName\":\"user1\"},{\"userName\":\"user2\"}]"))
     }
 
+    @Test
+    fun testCounter() {
+        val userCount = CustomerService.UserCount(10)
+
+        `when`(customerService.counter()).thenReturn(userCount)
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/secure/count"))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().json("{\"userCount\":10}"))
+    }
+
+    @Test
+    fun testEditUser() {
+        // val customer = Customer("testUser", "password", "John", "Doe", 100.0)
+        val customer = Customer(
+            userName = "testuser"
+        )
+        customer.password = "testpassword"
+        customer.gutHaben = 100.0
+        customer.firstName = "John"
+        customer.lastName = "Doe"
 
 
+        val successMessage = Messager.MessageWithStatus(true, "User edited successfully")
+
+        `when`(customerService.editUser(customer)).thenReturn(successMessage)
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/secure/edit")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(customer.toJson())
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(
+                MockMvcResultMatchers.content().json("{\"status\":true,\"message\":\"User edited successfully\"}")
+            )
+    }
 
     @Test
     fun testReduceAmount() {
-        // Mock the behavior of isAdminLoggedIn() and the service method
-        Mockito.`when`(adminController.isAdminLoggedIn()).thenReturn(true)
-        val request = Transaction("customerId", 100.0, Date()) // Initialize request
-        val expectedResponse = TransactionService.TransactionerMessage(true, "Transaction Successful", 100.0)
-        Mockito.`when`(adminController.service.reduceAmount(request)).thenReturn(expectedResponse)
+        val transaction = Transaction("testUser", 50.0)
+        val transactionMessage = TransactionService.TransactionerMessage(true, "Transaction successful", 50.0)
 
-        // Perform the test
-        val result = adminController.reduceAmount(request)
+        `when`(transactionService.reduceAmount(transaction)).thenReturn(transactionMessage)
 
-        // Assert the result
-        assert(result == expectedResponse)
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/secure/cashout")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(transaction.toJson())
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(
+                MockMvcResultMatchers.content()
+                    .json("{\"successful\":true,\"message\":\"Transaction successful\",\"newBalance\":50.0}")
+            )
     }
 
     @Test
     fun testIncreaseAmount() {
-        // Mock the behavior of isAdminLoggedIn() and the service method
-        Mockito.`when`(adminController.isAdminLoggedIn()).thenReturn(true)
-        val request = Transaction("customerId", 100.0, Date()) // Initialize request
-        val expectedResponse = TransactionService.TransactionerMessage(true, "Transaction Successful", 100.0)
-        Mockito.`when`(adminController.service.increaseAmount(request)).thenReturn(expectedResponse)
+        val transaction = Transaction("testUser", 50.0)
+        val transactionMessage = TransactionService.TransactionerMessage(true, "Transaction successful", 150.0)
 
-        // Perform the test
-        val result = adminController.increaseAmount(request)
+        `when`(transactionService.increaseAmount(transaction)).thenReturn(transactionMessage)
 
-        // Assert the result
-        assert(result == expectedResponse)
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/secure/payin")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(transaction.toJson())
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(
+                MockMvcResultMatchers.content()
+                    .json("{\"successful\":true,\"message\":\"Transaction successful\",\"newBalance\":150.0}")
+            )
     }
 
     @Test
     fun testGetAll() {
-        // Mock the behavior of isAdminLoggedIn() and the service method
-        Mockito.`when`(adminController.isAdminLoggedIn()).thenReturn(true)
-        val expectedResponse = Messager.TransactionsMessage(10, 5, 1000.0, 500.0, 500.0) // Initialize with expected data
-        Mockito.`when`(adminController.service.getAll()).thenReturn(expectedResponse)
+        val transactionsMessage = TransactionService.TransactionsMessage(10, 2, 500.0, 100.0, 400.0)
 
-        // Perform the test
-        val result = adminController.getAll()
+        `when`(transactionService.getAll()).thenReturn(transactionsMessage)
 
-        // Assert the result
-        assert(result == expectedResponse)
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/secure/all"))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(
+                MockMvcResultMatchers.content()
+                    .json("{\"todaySuccessfulTransactions\":10,\"failedTransactions\":2,\"totalPayIn\":500.0,\"totalPayOut\":100.0,\"totalSuccessfulTransactions\":400.0}")
+            )
     }
 
     @Test
     fun testGetUserTransactions() {
-        // Mock the behavior of isAdminLoggedIn() and the service method
-        Mockito.`when`(adminController.isAdminLoggedIn()).thenReturn(true)
-        val expectedUserTransactions = ArrayList<TransactionDb>() // Initialize with expected data
-        Mockito.`when`(adminController.service.getUserTransactions("userName")).thenReturn(expectedUserTransactions)
+        val transactionList =
+            listOf(TransactionDb("user1", 50.0, true, Date()), TransactionDb("user2", 100.0, true, Date()))
 
-        // Perform the test
-        val result = adminController.getUserTransactions("userName")
+        `when`(transactionService.getUserTransactions("testUser")).thenReturn(transactionList)
 
-        // Assert the result
-        assert(result == expectedUserTransactions)
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/secure/user_transactions/testUser"))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(
+                MockMvcResultMatchers.content()
+                    .json("[{\"customerId\":\"user1\",\"transactionValue\":50.0},{\"customerId\":\"user2\",\"transactionValue\":100.0}]")
+            )
     }
 
     @Test
     fun testGetDetail() {
-        // Mock the behavior of isAdminLoggedIn() and the service method
-        Mockito.`when`(adminController.isAdminLoggedIn()).thenReturn(true)
-        val expectedDetail = ArrayList<TransactionDb>() // Initialize with expected data
-        Mockito.`when`(adminController.service.getDetail()).thenReturn(expectedDetail)
+        val transactionList =
+            listOf(TransactionDb("user1", 50.0, true, Date()), TransactionDb("user2", 100.0, true, Date()))
 
-        // Perform the test
-        val result = adminController.getDetail()
+        `when`(transactionService.getDetail()).thenReturn(transactionList)
 
-        // Assert the result
-        assert(result == expectedDetail)
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/secure/transactions/today"))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(
+                MockMvcResultMatchers.content()
+                    .json("[{\"customerId\":\"user1\",\"transactionValue\":50.0},{\"customerId\":\"user2\",\"transactionValue\":100.0}]")
+            )
     }
 
     @Test
     fun testLoginAsAdmin() {
-        // Mock the behavior of loggedInRepo.count()
-        Mockito.`when`(loggedInRepo.count()).thenReturn(0)
+        val loginDTO = LoginDTO()
+        loginDTO.password = Utiles.adminPassword
+        loginDTO.userName = Utiles.adminUserName
+        val successMessage = Messager.PlainMessage("Successfully logged in as Admin")
 
-        // Test with valid admin credentials
-        val validAdminRequest = LoginDTO()
-        validAdminRequest.userName="admin"
-        validAdminRequest.password="admin"
-        val validAdminResponse = ResponseEntity.badRequest().body(Messager.PlainMessage("successfully logged in as Admin"))
-        val resultValidAdmin = adminController.loginAsAdmin(validAdminRequest)
+        `when`(loggedInUserRepo.count()).thenReturn(0)
+        `when`(loggedInUserRepo.save(LoggedInUserDb(2, "Admin"))).thenReturn(LoggedInUserDb(2, "Admin"))
 
-        // Test with invalid credentials
-        val invalidRequest = LoginDTO()
-        invalidRequest.userName="invalid"
-        invalidRequest.password="invalid"
-        val invalidResponse = ResponseEntity.badRequest().body(Messager.PlainMessage("invalid combination of username and password!"))
-        val resultInvalid = adminController.loginAsAdmin(invalidRequest)
-
-        // Assert the results
-        assert(resultValidAdmin == validAdminResponse)
-        assert(resultInvalid == invalidResponse)
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/secure/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginDTO.toJson())
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().json("{\"message\":\"Successfully logged in as Admin\"}"))
     }
 
     @Test
     fun testLogoutAsAdmin() {
-        // Mock the behavior of loggedInRepo.count()
-        Mockito.`when`(loggedInRepo.count()).thenReturn(1)
+        val successMessage = Messager.PlainMessage("Admin successfully logged out")
 
-        // Perform the test
-        val result = adminController.logoutAsAdmin()
+        `when`(loggedInUserRepo.count()).thenReturn(1)
+        `when`(loggedInUserRepo.deleteAll()).then { }
 
-        // Assert the result
-        assert(result.statusCodeValue == 200)
-        assert(result.body == Messager.PlainMessage("Admin successfully logout"))
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/secure/logout"))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().json("{\"message\":\"Admin successfully logged out\"}"))
     }
 
-    @Test
-    fun testIsAdminLoggedIn() {
-        // Mock the behavior of loggedInRepo.count() and findById()
-        Mockito.`when`(loggedInRepo.count()).thenReturn(1)
-        val loggedInUser = Optional.of(LoggedInUserDb(2, "Admin"))
-        Mockito.`when`(loggedInRepo.findById(2)).thenReturn(loggedInUser)
+    // Add more test cases for your other controller methods as needed
 
-        // Test when admin is logged in
-        val resultLoggedIn = adminController.isAdminLoggedIn()
-
-        // Test when no admin is logged in
-        Mockito.`when`(loggedInRepo.count()).thenReturn(0)
-        val resultNotLoggedIn = adminController.isAdminLoggedIn()
-
-        // Assert the results
-        assert(resultLoggedIn)
-        assert(!resultNotLoggedIn)
-    }
+    private inline fun <reified T> T.toJson(): String = ObjectMapper().writeValueAsString(this)
 }

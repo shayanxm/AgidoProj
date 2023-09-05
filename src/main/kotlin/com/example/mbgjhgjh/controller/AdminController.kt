@@ -94,6 +94,6 @@ class AdminController(
     private fun isAdminLoggedIn(): Boolean {
         if (loggedInUserRepo.count().toInt() == 0) return false
         val loggedInUser = loggedInUserRepo.findById(2).orElse(null)
-        return loggedInUser?.userName == "Admin"
+        return loggedInUser?.userName == Utiles.adminUserName
     }
 }

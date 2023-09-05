@@ -10,8 +10,8 @@ object Utiles {
 
     val secretKey = "my_template_secret"
     var loggedinusers: String = ""
-    val adminUserName = "admin"
-    val adminPassword = "admin"
+    val adminUserName = "Admin"
+    val adminPassword = "Admin"
 
     fun aresameDate(givenDate: Date): Boolean {
         return givenDate.toLocalDate() == Date().toLocalDate()
